@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 3001;
 
 app.get('/', (req, res) => res.type('html').send(html));
 
-app.listen(PORT, () => console.log(`Example app listening on port ${PORT}!`));
+app.listen(PORT, () => console.log(`App is listening on port ${PORT}!`));
 
 const html = `
 <!DOCTYPE html>
