@@ -1,10 +1,15 @@
+require('dotenv').config({ path: './config.env' });
 const express = require('express');
+const cors = require('cors');
+
 const app = express();
-const port = process.env.PORT || 3001;
+app.use(cors());
+app.use(express.json());
+const PORT = process.env.PORT || 3001;
 
 app.get('/', (req, res) => res.type('html').send(html));
 
-app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+app.listen(PORT, () => console.log(`Example app listening on port ${PORT}!`));
 
 const html = `
 <!DOCTYPE html>
