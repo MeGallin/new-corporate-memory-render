@@ -9,6 +9,7 @@ app.use(express.json());
 //Routes
 app.use('/api/', require('./routes/UserRoutes'));
 app.use('/api/', require('./routes/ContactFormRoute'));
+app.use('/api/', require('./routes/ConfirmationLinkRoute'));
 const PORT = process.env.PORT || 5000;
 
 // Connect DB

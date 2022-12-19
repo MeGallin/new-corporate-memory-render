@@ -39,7 +39,6 @@ exports.register = async (req, res, next) => {
     } catch (error) {
       user.resetPasswordToken = undefined;
       user.resetPasswordExpire = undefined;
-      console.log('xxxxxxx', error);
 
       return next(new ErrorResponse('Email could not be set', 500));
     }
