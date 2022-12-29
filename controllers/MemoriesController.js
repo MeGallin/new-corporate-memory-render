@@ -101,3 +101,20 @@ exports.deleteMemory = async (req, res, next) => {
     next(error);
   }
 };
+
+// @description: USER Delete a tag
+// @route: DELETE /api/delete-memory-tag/:id
+// @access: Private
+exports.deleteMemoryTag = async (req, res, next) => {
+  const memory = await Memories.findById(req.params.id);
+  try {
+    if (!memory) return next(new ErrorResponse('No Memory found!', 401));
+
+    // Remove object for array
+    memory.tags.shift();
+    await memory.save();
+    res.status(200).json({ success: true });
+  } catch (error) {
+    next(error);
+  }
+};
