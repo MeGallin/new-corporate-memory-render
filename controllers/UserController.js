@@ -215,25 +215,13 @@ exports.resetPassword = async (req, res, next) => {
 // @description: Get user data of logged in in user
 // @route: GET /api/users/user
 // @access: PRIVATE
-exports.getUserDetails = async (req, res) => {
-  const {
-    _id,
-    name,
-    email,
-    isAdmin,
-    isConfirmed,
-    isSuspended,
-    profileImage,
-    cloudinaryId,
-  } = await User.findById(req.user.id);
-  res.status(200).json({
-    id: _id,
-    name,
-    email,
-    isAdmin,
-    isConfirmed,
-    isSuspended,
-    profileImage,
-    cloudinaryId,
-  });
+exports.getUserDetails = async (req, res, next) => {
+  const userDetails = await User.findById(req.user.id);
+  try {
+    if (!userDetails)
+      return next(new ErrorResponse('Invalid, no user details found'), 404);
+    res.status(200).json({ success: true, userDetails });
+  } catch (error) {
+    next(error);
+  }
 };
