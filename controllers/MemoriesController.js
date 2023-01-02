@@ -1,4 +1,3 @@
-const User = require('../models/UserModel');
 const Memories = require('../models/MemoriesModel');
 const ErrorResponse = require('../utils/errorResponse');
 
