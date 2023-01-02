@@ -7,6 +7,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 //Routes
+app.use('/api/', require('./routes/PageHitsRoute'));
 app.use('/api/', require('./routes/UserRoutes'));
 app.use('/api/', require('./routes/MemoriesRoute'));
 app.use('/api/', require('./routes/ContactFormRoute'));
