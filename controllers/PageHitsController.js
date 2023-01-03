@@ -1,19 +1,20 @@
-const PageHits = require('../models/PageHtisModel');
-const ErrorResponse = require('../utils/errorResponse');
+const PageHits = require('../models/PageHitsModel');
 const requestIp = require('request-ip');
-const { findByIdAndUpdate } = require('../models/PageHtisModel');
 
 exports.pageHits = async (req, res, next) => {
   const ipAddress = requestIp.getClientIp(req);
   const hits = await PageHits.find();
+  const ipAddressExists = await PageHits.findOne({ ipAddress: ipAddress });
 
   try {
-    if (!hits) next(new ErrorResponse('No Memory found!', 401));
-    await PageHits.create({
-      ipAddress: ipAddress,
-    });
+    if (!ipAddressExists) {
+      const newIpAddress = new PageHits({
+        ipAddress,
+      });
+      await newIpAddress.save();
+    }
+    res.status(200).json({ success: true, hits });
   } catch (error) {
     next(error);
   }
-  res.status(200).json({ success: true, hits });
 };
