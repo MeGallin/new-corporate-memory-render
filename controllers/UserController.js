@@ -65,6 +65,7 @@ const sendToken = (user, statusCode, res) => {
 // @route: POST /api/login
 // @access: Public
 exports.login = async (req, res, next) => {
+  const ipAddress = requestIp.getClientIp(req);
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -84,6 +85,7 @@ exports.login = async (req, res, next) => {
       return next(new ErrorResponse('Please provide valid credentials', 401));
     }
     user.loginCounter = user.loginCounter + 1;
+    user.ipAddress = ipAddress;
     await user.save();
 
     sendToken(user, 200, res);
