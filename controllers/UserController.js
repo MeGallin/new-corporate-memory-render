@@ -3,11 +3,13 @@ const User = require('../models/UserModel');
 const ErrorResponse = require('../utils/errorResponse');
 const sendEmail = require('../utils/sendEmail');
 const jwt = require('jsonwebtoken');
+const requestIp = require('request-ip');
 
 // @description: Register new user
 // @route: POST /api/register
 // @access: Public
 exports.register = async (req, res, next) => {
+  const ipAddress = requestIp.getClientIp(req);
   const { name, email, password } = req.body;
 
   try {
@@ -17,6 +19,8 @@ exports.register = async (req, res, next) => {
       password,
       profileImage: '/assets/images/sample.png',
       cloudinaryId: '12345',
+      ipAddress: ipAddress,
+      loginCounter,
     });
 
     try {
@@ -61,6 +65,7 @@ const sendToken = (user, statusCode, res) => {
 // @route: POST /api/login
 // @access: Public
 exports.login = async (req, res, next) => {
+  const ipAddress = requestIp.getClientIp(req);
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -79,6 +84,9 @@ exports.login = async (req, res, next) => {
     if (!isMatched) {
       return next(new ErrorResponse('Please provide valid credentials', 401));
     }
+    user.loginCounter = user.loginCounter + 1;
+    user.ipAddress = ipAddress;
+    await user.save();
 
     sendToken(user, 200, res);
   } catch (error) {

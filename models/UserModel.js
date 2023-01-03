@@ -43,6 +43,13 @@ const UserSchema = mongoose.Schema(
     resetPasswordToken: {
       type: String,
     },
+    ipAddress: {
+      type: String,
+    },
+    loginCounter: {
+      type: Number,
+      default: 0,
+    },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
   },
