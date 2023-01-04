@@ -1,4 +1,5 @@
 const Memories = require('../models/MemoriesModel');
+const MemoryImage = require('../models/MemoryImageModel');
 const ErrorResponse = require('../utils/errorResponse');
 
 // @description: USER get all memories
@@ -106,9 +107,32 @@ exports.deleteMemoryTag = async (req, res, next) => {
   const memory = await Memories.findById(req.params.id);
   try {
     if (!memory) return next(new ErrorResponse('No Memory found!', 401));
-
     // Remove object for array
     memory.tags.shift();
+    await memory.save();
+    res.status(200).json({ success: true });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @description: Delete a Memory Image
+// @route: DELETE /api/memory-image-delete/:id
+// @access: Private
+exports.deleteMemoryImage = async (req, res, next) => {
+  const memory = await Memories.findById(req.params.id);
+  try {
+    if (!memory) return next(new ErrorResponse('No Memory found!', 401));
+    // Associate it with memory image
+    const image = await MemoryImage.findOne({
+      cloudinaryId: memory.cloudinaryId,
+    });
+    await image.remove();
+
+    //Update the memory object
+    memory.cloudinaryId = null;
+    memory.memoryImage = null;
+
     await memory.save();
     res.status(200).json({ success: true });
   } catch (error) {
