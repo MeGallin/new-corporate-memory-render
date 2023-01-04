@@ -1,8 +1,6 @@
 const Memories = require('../models/MemoriesModel');
 const ErrorResponse = require('../utils/errorResponse');
 
-const moment = require('moment');
-
 // @description: USER get all memories
 // @route: GET /api/memories
 // @access: Private
