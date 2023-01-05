@@ -13,6 +13,7 @@ app.use('/api/', require('./routes/MemoriesRoute'));
 app.use('/api/', require('./routes/ContactFormRoute'));
 app.use('/api/', require('./routes/ConfirmationLinkRoute'));
 app.use('/api/', require('./routes/MemoryUploadImageRoutes'));
+app.use('/api/', require('./routes/AdminRoute'));
 
 const PORT = process.env.PORT || 5000;
 
