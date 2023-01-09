@@ -22,17 +22,10 @@ exports.memories = async (req, res, next) => {
 
     memories.filter((memory) => {
       // NOTES: setTimeout then fire a function
-      if (
-        moment(new Date()).diff(moment(memory?.dueDate), 'seconds') >
-          Number(-604850) &&
-        memory?.setDueDate &&
-        !memory?.isComplete &&
-        !memory?.hasSentSevenDayReminder
-      ) {
-        // REF https://crontab.guru/
-        cron.schedule(`30 * * * *`, async () => {
-          console.log('fired');
-          const text = `
+
+      // REF https://crontab.guru/
+      cron.schedule(`30 * * * *`, async () => {
+        const text = `
           <h1>Hi ${user?.name}</h1>
       <p>You have a memory due within the next seven (7) days.</p>
       <h3>The title is: <span style="color: orange;"> ${memory?.title}</span> </h3>
@@ -41,21 +34,19 @@ exports.memories = async (req, res, next) => {
       <p>Thank you</p>
       <h3>Your Corporate Memory management</h3>
           `;
-          // Send Email
-          sendEmail({
-            from: process.env.MAILER_FROM,
-            to: email,
-            subject: 'Your Corporate Memory Automatic Reminder',
-            html: text,
-          });
-          await Memories.findByIdAndUpdate(
-            memory._id.toString(),
-            { hasSentSevenDayReminder: true },
-            { new: true },
-          );
+        // Send Email
+        sendEmail({
+          from: process.env.MAILER_FROM,
+          to: user?.email,
+          subject: 'Your Corporate Memory Automatic Reminder',
+          html: text,
         });
-      }
-      return false;
+        await Memories.findByIdAndUpdate(
+          memory._id.toString(),
+          { hasSentSevenDayReminder: true },
+          { new: true },
+        );
+      });
     });
     res.status(200).json({ success: true, memories });
   } catch (error) {

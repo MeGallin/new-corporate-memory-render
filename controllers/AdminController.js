@@ -6,17 +6,12 @@ const ErrorResponse = require('../utils/errorResponse');
 // @route: GET /api/admin/user-details-memories
 // @access: Admin and Private
 exports.adminGetAllUserData = async (req, res, next) => {
-  const allUsers = await User.find();
-  const allMemories = await Memories.find();
+  const users = await User.find();
+  const memories = await Memories.find();
   try {
-    if (!allUsers && !allMemories)
+    if (!users && !memories)
       return next(new ErrorResponse('Nothing could be found', 500));
-    //Filter out admin users
-    const nonAdminUsers = allUsers.filter((user) => {
-      if (!user.isAdmin) return user;
-    });
-    const allData = [...nonAdminUsers, ...allMemories];
-    res.status(200).json({ success: true, allData });
+    res.status(200).json({ success: true, users, memories });
   } catch (error) {
     next(error);
   }
