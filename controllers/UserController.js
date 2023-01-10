@@ -20,7 +20,7 @@ exports.register = async (req, res, next) => {
       profileImage: '/assets/images/sample.png',
       cloudinaryId: '12345',
       ipAddress: ipAddress,
-      loginCounter,
+      loginCounter: 0,
     });
 
     try {
