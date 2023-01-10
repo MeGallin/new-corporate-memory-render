@@ -58,7 +58,7 @@ exports.memories = async (req, res, next) => {
 // @route: GET /api/create-memory
 // @access: Private
 exports.createMemory = async (req, res, next) => {
-  const { title, memory, setDueDate, dueDate, tags, priority, isComplete } =
+  const { title, memory, setDueDate, dueDate, tag, priority, isComplete } =
     req.body;
   const userId = req.user._id;
 
@@ -66,24 +66,17 @@ exports.createMemory = async (req, res, next) => {
     return next(new ErrorResponse('Please provide a Title and a Memory', 400));
 
   try {
-    const tag = [
-      {
-        tagName: tags,
-      },
-    ];
-
     await Memories.create({
       title,
       memory,
       setDueDate,
       dueDate,
-      tags,
+      tag,
       priority,
       isComplete,
       hasSentSevenDayReminder: false,
       hasSentOneDayReminder: false,
       user: userId,
-      tags: tag,
     });
     res.status(200).json({ success: true });
   } catch (error) {
@@ -99,17 +92,12 @@ exports.editMemory = async (req, res, next) => {
   if (!foundMemory)
     return next(new ErrorResponse('No memory could be found', 400));
   try {
-    const tag = [
-      {
-        tagName: req.body.tags,
-      },
-    ];
     const updatedMemory = {
       title: req.body.title,
       memory: req.body.memory,
       setDueDate: req.body.setDueDate,
       dueDate: req.body.dueDate,
-      tags: tag,
+      tag: req.body.tag,
       priority: req.body.priority,
       isComplete: req.body.isComplete,
     };
@@ -149,7 +137,7 @@ exports.deleteMemoryTag = async (req, res, next) => {
   try {
     if (!memory) return next(new ErrorResponse('No Memory found!', 401));
     // Remove object for array
-    memory.tags.shift();
+    memory.tag = null;
     await memory.save();
     res.status(200).json({ success: true });
   } catch (error) {
