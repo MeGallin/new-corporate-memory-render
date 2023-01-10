@@ -1,11 +1,5 @@
 const mongoose = require('mongoose');
 
-const tagsSchema = mongoose.Schema({
-  tagName: {
-    type: String,
-  },
-});
-
 const MemoriesSchema = mongoose.Schema(
   {
     user: {
@@ -44,7 +38,9 @@ const MemoriesSchema = mongoose.Schema(
       type: Number,
       default: 1,
     },
-    tags: [tagsSchema],
+    tag: {
+      type: String,
+    },
     memoryImage: {
       type: String,
     },
