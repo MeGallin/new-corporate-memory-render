@@ -121,12 +121,14 @@ exports.googleLogin = async (req, res, next) => {
         ipAddress: ipAddress,
         loginCounter: 0,
       });
-
       await user.save();
       sendToken(user, 200, res);
     } else {
       //Login
       const user = await User.findOne({ email: googleToken?.email });
+      user.loginCounter = user.loginCounter + 1;
+      user.ipAddress = ipAddress;
+      await user.save();
       sendToken(user, 200, res);
     }
   } catch (error) {
