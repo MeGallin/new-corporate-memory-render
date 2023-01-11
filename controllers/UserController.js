@@ -17,10 +17,11 @@ exports.register = async (req, res, next) => {
       name,
       email,
       password,
-      profileImage: '/assets/images/sample.png',
+      profileImage: '/assets/images/sample.jpg',
       cloudinaryId: '12345',
       ipAddress: ipAddress,
       loginCounter: 0,
+      registeredWithGoogle: false,
     });
 
     try {
@@ -89,6 +90,45 @@ exports.login = async (req, res, next) => {
     await user.save();
 
     sendToken(user, 200, res);
+  } catch (error) {
+    next(error);
+  }
+};
+
+//Google Login
+exports.googleLogin = async (req, res, next) => {
+  const ipAddress = requestIp.getClientIp(req);
+  token = req.body.headers.Authorization.split(' ')[1];
+  try {
+    if (!token?.sub)
+      return next(new ErrorResponse('Your login was un-successful', 500));
+
+    //Potential confirmation email here.
+
+    const googleToken = jwt.decode(token);
+    //check if email exist
+    const existingUser = await User.findOne({ email: googleToken?.email });
+    if (existingUser === null) {
+      // Create user
+      const user = await User.create({
+        name: googleToken?.name,
+        email: googleToken?.email,
+        password: googleToken?.email + process.env.JWT_SECRET,
+        isConfirmed: true,
+        registeredWithGoogle: true,
+        profileImage: '/assets/images/sample.jpg',
+        cloudinaryId: '12345',
+        ipAddress: ipAddress,
+        loginCounter: 0,
+      });
+
+      await user.save();
+      sendToken(user, 200, res);
+    } else {
+      //Login
+      const user = await User.findOne({ email: googleToken?.email });
+      sendToken(user, 200, res);
+    }
   } catch (error) {
     next(error);
   }
