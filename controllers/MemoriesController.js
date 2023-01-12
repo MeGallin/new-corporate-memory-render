@@ -27,8 +27,7 @@ exports.memories = async (req, res, next) => {
         moment(new Date()).diff(moment(memory?.dueDate), 'seconds') >
           Number(-604850) &&
         memory?.setDueDate &&
-        !memory?.isComplete &&
-        !memory?.hasSentSevenDayReminder
+        !memory?.isComplete
       ) {
         // REF https://crontab.guru/
         cron.schedule(`30 * * * *`, async () => {
