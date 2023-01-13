@@ -5,6 +5,7 @@ const ErrorResponse = require('../utils/errorResponse');
 const moment = require('moment');
 const cron = require('node-cron');
 const sendEmail = require('../utils/sendEmail');
+const cloudinary = require('cloudinary');
 
 // @description: USER get all memories
 // @route: GET /api/memories
@@ -164,6 +165,14 @@ exports.deleteMemoryImage = async (req, res, next) => {
       cloudinaryId: memory.cloudinaryId,
     });
     await image.remove();
+
+    //Delete image from Cloudinary
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_SECRET,
+    });
+    await cloudinary.uploader.destroy(memory.cloudinaryId);
 
     //Update the memory object
     memory.cloudinaryId = null;

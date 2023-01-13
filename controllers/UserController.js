@@ -5,6 +5,7 @@ const ErrorResponse = require('../utils/errorResponse');
 const sendEmail = require('../utils/sendEmail');
 const jwt = require('jsonwebtoken');
 const requestIp = require('request-ip');
+const cloudinary = require('cloudinary');
 
 // @description: Register new user
 // @route: POST /api/register
@@ -289,6 +290,15 @@ exports.deleteUserProfileImage = async (req, res, next) => {
       cloudinaryId: user.cloudinaryId,
     });
     await image.remove();
+
+    //Delete image from Cloudinary
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_SECRET,
+    });
+    await cloudinary.uploader.destroy(user.cloudinaryId);
+
     //Update the memory object
     user.cloudinaryId = null;
     user.profileImage = null;
