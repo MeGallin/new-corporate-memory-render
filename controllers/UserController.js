@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const User = require('../models/UserModel');
+const UserProfileImage = require('../models/UserProfileImageModel');
 const ErrorResponse = require('../utils/errorResponse');
 const sendEmail = require('../utils/sendEmail');
 const jwt = require('jsonwebtoken');
@@ -271,6 +272,29 @@ exports.getUserDetails = async (req, res, next) => {
     if (!userDetails)
       return next(new ErrorResponse('Invalid, no user details found'), 404);
     res.status(200).json({ success: true, userDetails });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @description: Delete a User Profile Image
+// @route: DELETE /api/user-profile-image-delete/:id
+// @access: Private
+exports.deleteUserProfileImage = async (req, res, next) => {
+  const user = await User.findById(req.params.id);
+  try {
+    if (!user) return next(new ErrorResponse('No User found!', 401));
+    // Associate it with memory image
+    const image = await UserProfileImage.findOne({
+      cloudinaryId: user.cloudinaryId,
+    });
+    await image.remove();
+    //Update the memory object
+    user.cloudinaryId = null;
+    user.profileImage = null;
+
+    await user.save();
+    res.status(200).json({ success: true });
   } catch (error) {
     next(error);
   }
