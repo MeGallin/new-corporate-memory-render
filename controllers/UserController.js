@@ -35,7 +35,7 @@ exports.register = async (req, res, next) => {
       // Send Email
       sendEmail({
         from: process.env.MAILER_FROM,
-        to: 'me@garyallin.uk', // change to this when live user.email
+        to: user.email, // change to this when live user.email
         subject: 'Your Corporate Memory Registration',
         html: message,
       });
