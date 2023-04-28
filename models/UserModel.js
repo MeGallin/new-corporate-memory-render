@@ -14,6 +14,7 @@ const UserSchema = mongoose.Schema(
       required: [true, 'Email is required'],
       unique: true,
       sparse: true,
+      lowercase: true,
     },
     password: {
       type: String,
@@ -63,15 +64,17 @@ const UserSchema = mongoose.Schema(
   },
 );
 
+// This the pre-save middleware
 UserSchema.pre('save', async function (next) {
   if (!this.isModified('password')) {
     next();
   }
-  const salt = await bcrypt.genSalt(10);
+  const salt = await bcrypt.genSalt(12);
   this.password = await bcrypt.hash(this.password, salt);
   next();
 });
 
+//This is an instance method
 UserSchema.methods.matchPasswords = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
