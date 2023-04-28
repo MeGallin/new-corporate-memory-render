@@ -41,7 +41,7 @@ exports.register = async (req, res, next) => {
       });
 
       res
-        .status(200)
+        .status(201)
         .json({ success: true, data: `Email sent successfully ${link}` });
     } catch (error) {
       user.resetPasswordToken = undefined;
@@ -71,11 +71,13 @@ exports.login = async (req, res, next) => {
   const ipAddress = requestIp.getClientIp(req);
   const { email, password } = req.body;
 
+  // Check if email and PW exist
   if (!email || !password) {
     return next(new ErrorResponse('Please provide an email and Password', 400));
   }
 
   try {
+    // Check if user exists and PW is correct
     const user = await User.findOne({ email }).select('+password');
 
     if (!user) {

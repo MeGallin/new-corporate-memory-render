@@ -16,6 +16,14 @@ app.use('/api/', require('./routes/MemoryUploadImageRoutes'));
 app.use('/api/', require('./routes/UserProfileImageRoutes'));
 app.use('/api/', require('./routes/AdminRoute'));
 
+// Basic route error handler
+app.all('*', (req, res, next) => {
+  res.status(404).json({
+    status: 'failed',
+    message: `Can't find ${req.originalUrl} on this server`,
+  });
+});
+
 const PORT = process.env.PORT || 5000;
 
 // Connect DB
