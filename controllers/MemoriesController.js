@@ -11,50 +11,66 @@ const catchAsync = require('../utils/catchAsync');
 // @description: USER get all memories
 // @route: GET /api/memories
 // @access: Private
+
+const SEVEN_DAYS_IN_SECONDS = 604800;
+
 exports.memories = catchAsync(async (req, res, next) => {
   const memories = await Memories.find({ user: req.user._id }).sort({
     createdAt: -1,
   });
   const user = await User.findById(req.user._id);
 
-  if (!memories)
+  if (!memories || memories.length === 0) {
     return next(new ErrorResponse('No memories could be found!', 400));
+  }
 
-  // Add cron for sending email reminders
-  memories.filter((memory) => {
-    // NOTES: setTimeout then fire a function
+  memories.forEach((memory) => {
+    // Calculate the difference in seconds between now and the memory's due date.
+    const diffInSeconds = moment().diff(moment(memory.dueDate), 'seconds');
+
+    // Check if the memory is due within the next 7 days, has a due date set, is not complete,
+    // and if the reminder has not already been sent.
     if (
-      moment(new Date()).diff(moment(memory?.dueDate), 'seconds') >
-        Number(-604850) &&
-      memory?.setDueDate &&
-      !memory?.isComplete
+      diffInSeconds > -SEVEN_DAYS_IN_SECONDS &&
+      memory.setDueDate &&
+      !memory.isComplete &&
+      !memory.hasSentSevenDayReminder
     ) {
-      // REF https://crontab.guru/
-      cron.schedule(`30 * * * *`, async () => {
-        const text = `
-          <h1>Hi ${user?.name}</h1>
-      <p>You have a memory due within the next seven (7) days.</p>
-      <h3>The title is: <span style="color: orange;"> ${memory?.title}</span> </h3>
-      <p>The task is due on ${memory?.dueDate}</p>
-      <p>Please log into <a href="https://yourcorporatememory.com" id='link'>YOUR ACCOUNT</a> to see the reminder</p>
-      <p>Thank you</p>
-      <h3>Your Corporate Memory management</h3>
+      // Schedule the email reminder job.
+      cron.schedule('30 * * * *', async () => {
+        try {
+          const text = `
+            <h1>Hi ${user.name}</h1>
+            <p>You have a memory due within the next seven (7) days.</p>
+            <h3>The title is: <span style="color: orange;">${memory.title}</span></h3>
+            <p>The task is due on ${memory.dueDate}</p>
+            <p>Please log into <a href="https://yourcorporatememory.com" id="link">YOUR ACCOUNT</a> to see the reminder</p>
+            <p>Thank you</p>
+            <h3>Your Corporate Memory Management</h3>
           `;
-        // Send Email
-        sendEmail({
-          from: process.env.MAILER_FROM,
-          to: user?.email,
-          subject: 'Your Corporate Memory Automatic Reminder',
-          html: text,
-        });
-        await Memories.findByIdAndUpdate(
-          memory._id.toString(),
-          { hasSentSevenDayReminder: true },
-          { new: true },
-        );
+
+          await sendEmail({
+            from: process.env.MAILER_FROM,
+            to: user.email,
+            subject: 'Your Corporate Memory Automatic Reminder',
+            html: text,
+          });
+
+          await Memories.findByIdAndUpdate(
+            memory._id,
+            { hasSentSevenDayReminder: true },
+            { new: true },
+          );
+        } catch (error) {
+          console.error(
+            `Error sending reminder for memory ${memory._id}:`,
+            error,
+          );
+        }
       });
     }
   });
+
   res.status(200).json({ success: true, memories });
 });
 
