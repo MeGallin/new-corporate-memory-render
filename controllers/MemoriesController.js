@@ -25,7 +25,6 @@ exports.memories = catchAsync(async (req, res, next) => {
   }
 
   memories.forEach((memory) => {
-    console.log('DDD', memory.title);
     // Calculate the difference in seconds between now and the memory's due date.
     const diffInSeconds = moment().diff(moment(memory.dueDate), 'seconds');
 
@@ -37,7 +36,6 @@ exports.memories = catchAsync(async (req, res, next) => {
       !memory.isComplete &&
       !memory.hasSentSevenDayReminder
     ) {
-      console.log('GGGG', memory.title);
       // Schedule the email reminder job.
       cron.schedule('30 * * * *', async () => {
         try {
