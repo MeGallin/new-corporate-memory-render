@@ -14,62 +14,74 @@ const catchAsync = require('../utils/catchAsync');
 
 const SEVEN_DAYS_IN_SECONDS = 604800;
 
+// Create a single scheduled job that runs once per day to check reminders
+// This prevents creating duplicate jobs on each API call
+const reminderJob = cron.schedule(
+  '0 8 * * *',
+  async () => {
+    try {
+      // Find all memories that are:
+      // 1. Due within 7 days
+      // 2. Have setDueDate = true
+      // 3. Are not complete
+      // 4. Haven't sent the 7-day reminder
+      const sevenDayWindow = moment().add(7, 'days').toDate();
+      const memories = await Memories.find({
+        dueDate: { $lte: sevenDayWindow },
+        setDueDate: true,
+        isComplete: false,
+        hasSentSevenDayReminder: false,
+      });
+
+      for (const memory of memories) {
+        const user = await User.findById(memory.user);
+        if (!user) continue;
+
+        const text = `
+        <h1>Hi ${user.name}</h1>
+        <p>You have a memory due within the next seven (7) days.</p>
+        <h3>The title is: <span style="color: orange;">${memory.title}</span></h3>
+        <p>The task is due on ${memory.dueDate}</p>
+        <p>Please log into <a href="https://yourcorporatememory.com" id="link">YOUR ACCOUNT</a> to see the reminder</p>
+        <p>Thank you</p>
+        <h3>Your Corporate Memory Management</h3>
+      `;
+
+        await sendEmail({
+          from: process.env.MAILER_FROM,
+          to: user.email,
+          subject: 'Your Corporate Memory Automatic Reminder',
+          html: text,
+        });
+
+        // Update the reminder flag
+        await Memories.findByIdAndUpdate(
+          memory._id,
+          { hasSentSevenDayReminder: true },
+          { new: true },
+        );
+
+        console.log(`Sent 7-day reminder for memory: ${memory._id}`);
+      }
+    } catch (error) {
+      console.error('Error in reminder cron job:', error);
+    }
+  },
+  {
+    scheduled: true,
+  },
+);
+
 exports.memories = catchAsync(async (req, res, next) => {
   const memories = await Memories.find({ user: req.user._id }).sort({
     createdAt: -1,
   });
-  const user = await User.findById(req.user._id);
 
   if (!memories || memories.length === 0) {
     return next(new ErrorResponse('No memories could be found!', 400));
   }
 
-  memories.forEach((memory) => {
-    // Calculate the difference in seconds between now and the memory's due date.
-    const diffInSeconds = moment().diff(moment(memory.dueDate), 'seconds');
-
-    // Check if the memory is due within the next 7 days, has a due date set, is not complete,
-    // and if the reminder has not already been sent.
-    if (
-      diffInSeconds > -SEVEN_DAYS_IN_SECONDS &&
-      memory.setDueDate &&
-      !memory.isComplete &&
-      !memory.hasSentSevenDayReminder
-    ) {
-      // Schedule the email reminder job.
-      cron.schedule('30 * * * *', async () => {
-        try {
-          const text = `
-            <h1>Hi ${user.name}</h1>
-            <p>You have a memory due within the next seven (7) days.</p>
-            <h3>The title is: <span style="color: orange;">${memory.title}</span></h3>
-            <p>The task is due on ${memory.dueDate}</p>
-            <p>Please log into <a href="https://yourcorporatememory.com" id="link">YOUR ACCOUNT</a> to see the reminder</p>
-            <p>Thank you</p>
-            <h3>Your Corporate Memory Management</h3>
-          `;
-
-          await sendEmail({
-            from: process.env.MAILER_FROM,
-            to: user.email,
-            subject: 'Your Corporate Memory Automatic Reminder',
-            html: text,
-          });
-
-          await Memories.findByIdAndUpdate(
-            memory._id,
-            { hasSentSevenDayReminder: true },
-            { new: true },
-          );
-        } catch (error) {
-          console.error(
-            `Error sending reminder for memory ${memory._id}:`,
-            error,
-          );
-        }
-      });
-    }
-  });
+  // No reminder logic here - it's handled by the scheduled job above
 
   res.status(200).json({ success: true, memories });
 });
