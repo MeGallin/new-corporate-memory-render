@@ -77,13 +77,12 @@ exports.memories = catchAsync(async (req, res, next) => {
     createdAt: -1,
   });
 
-  if (!memories || memories.length === 0) {
-    return next(new ErrorResponse('No memories could be found!', 400));
-  }
-
-  // No reminder logic here - it's handled by the scheduled job above
-
-  res.status(200).json({ success: true, memories });
+  // Return empty array if no memories found - this is a valid state, not an error
+  res.status(200).json({
+    success: true,
+    memories: memories || [],
+    count: memories ? memories.length : 0,
+  });
 });
 
 // @description: USER Create a memory
