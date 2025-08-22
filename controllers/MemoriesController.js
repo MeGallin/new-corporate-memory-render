@@ -89,16 +89,20 @@ exports.memories = catchAsync(async (req, res, next) => {
 // @route: GET /api/create-memory
 // @access: Private
 exports.createMemory = catchAsync(async (req, res, next) => {
-  const { title, memory, setDueDate, dueDate, tag, priority, isComplete } =
+  const { title, memory, dueDate, tag, priority, isComplete } =
     req.body;
   const userId = req.user._id;
 
   if (!title || !memory)
     return next(new ErrorResponse('Please provide a Title and a Memory', 400));
+
+  // Determine setDueDate based on whether dueDate is provided
+  const finalSetDueDate = !!dueDate;
+
   await Memories.create({
     title,
     memory,
-    setDueDate,
+    setDueDate: finalSetDueDate, // Use the determined value
     dueDate,
     tag,
     priority,
@@ -118,14 +122,19 @@ exports.editMemory = catchAsync(async (req, res, next) => {
   if (!foundMemory)
     return next(new ErrorResponse('No memory could be found', 400));
 
+  const { title, memory, dueDate, tag, priority, isComplete } = req.body;
+
+  // Determine setDueDate based on whether dueDate is provided in the update
+  const finalSetDueDate = !!dueDate;
+
   const updatedMemory = {
-    title: req.body.title,
-    memory: req.body.memory,
-    setDueDate: req.body.setDueDate,
-    dueDate: req.body.dueDate,
-    tag: req.body.tag,
-    priority: req.body.priority,
-    isComplete: req.body.isComplete,
+    title,
+    memory,
+    setDueDate: finalSetDueDate, // Use the determined value
+    dueDate,
+    tag,
+    priority,
+    isComplete,
   };
 
   await Memories.findByIdAndUpdate(

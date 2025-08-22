@@ -17,7 +17,7 @@ const MemoriesSchema = mongoose.Schema(
     },
     setDueDate: {
       type: Boolean,
-      default: true,
+      default: false,
     },
     dueDate: {
       type: String,
