@@ -11,7 +11,7 @@ const app = express();
 
 // CORS Configuration
 const allowedOrigins = process.env.NODE_ENV === 'production'
-  ? ['https://yourproductiondomain.com'] // Replace with your actual production domain
+  ? ['https://yourcorporatememory.com', 'https://new-corporate-memory-api.onrender.com'] // Added actual production domains
   : ['http://localhost:3000', 'http://localhost:5000']; // Development origins
 
 app.use(cors({
