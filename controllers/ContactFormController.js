@@ -31,7 +31,24 @@ exports.sendContactForm = catchAsync(async (req, res, next) => {
   const sanitizedName = escapeHTML(name);
   const sanitizedMessage = escapeHTML(message);
 
-  const text = `<h1>Hi ${sanitizedName}</h1><p>Thank you for your enquiry</p><p>This is what your query said:</p><h2>${sanitizedMessage}</h2><h4>Somebody will make contact with in due course.</h4><p>Thank you.</p><h3>YCM management</h3>`;
+  const text = `<div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+    <div style="text-align: center; padding-bottom: 20px; border-bottom: 1px solid #eee;">
+        <h1 style="color: #0056b3;">Your Corporate Memory</h1>
+    </div>
+    <div style="padding: 20px 0;">
+        <p>Hi <strong style="color: #0056b3;">${sanitizedName}</strong>,</p>
+        <p>Thank you for your enquiry. We have received your message and will get back to you shortly.</p>
+        <p style="font-weight: bold;">Your query:</p>
+        <div style="background-color: #f9f9f9; border-left: 4px solid #0056b3; padding: 15px; margin: 15px 0; border-radius: 4px;">
+            <p style="margin: 0;">${sanitizedMessage}</p>
+        </div>
+        <p>Thank you for your patience.</p>
+    </div>
+    <div style="text-align: center; padding-top: 20px; border-top: 1px solid #eee; font-size: 0.9em; color: #777;">
+        <p>Best regards,</p>
+        <p>Your Corporate Memory Management</p>
+    </div>
+</div>`;
 
   // Send Email
   sendEmail({
