@@ -6,6 +6,7 @@ const compression = require('compression'); // New import
 const morgan = require('morgan'); // New import
 const connectDB = require('./config/db');
 const ErrorResponse = require('./utils/errorResponse'); // Import ErrorResponse for custom error handling
+const { scheduleReminderEmails } = require('./utils/cronJobs');
 
 const app = express();
 
@@ -88,5 +89,9 @@ const PORT = process.env.PORT || 5000;
 
 // Connect DB
 connectDB().then(() => {
-  app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+    // Initialize scheduled jobs once the server is running
+    scheduleReminderEmails();
+  });
 });

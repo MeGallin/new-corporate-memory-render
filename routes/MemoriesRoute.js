@@ -10,11 +10,21 @@ const {
 } = require('../controllers/MemoriesController');
 const { protect } = require('../middleWare/authMiddleWare');
 
-router.route('/memories').get(protect, memories);
-router.route('/create-memory').post(protect, createMemory);
-router.route('/edit-memory/:id').put(protect, editMemory);
-router.route('/delete-memory/:id').delete(protect, deleteMemory);
-router.route('/delete-memory-tag/:id').delete(protect, deleteMemoryTag);
-router.route('/delete-memory-image/:id').delete(protect, deleteMemoryImage);
+// POST /api/memories
+// GET /api/memories
+router.route('/memories').get(protect, memories).post(protect, createMemory);
+
+// PUT /api/memories/:id
+// DELETE /api/memories/:id
+router
+  .route('/memories/:id')
+  .put(protect, editMemory)
+  .delete(protect, deleteMemory);
+
+// DELETE /api/memories/:id/tag
+router.route('/memories/:id/tag').delete(protect, deleteMemoryTag);
+
+// DELETE /api/memories/:id/image
+router.route('/memories/:id/image').delete(protect, deleteMemoryImage);
 
 module.exports = router;

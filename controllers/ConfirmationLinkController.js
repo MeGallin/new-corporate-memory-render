@@ -4,25 +4,40 @@ const ErrorResponse = require('../utils/errorResponse');
 const catchAsync = require('../utils/catchAsync');
 
 // @description: Confirmation Email
-// @route: GET /confirm-email/:token
+// @route: GET /api/confirm-email/:token
 // @access: public
-exports.confirmEmailLink = catchAsync(async (req, res) => {
-  const decodedToken = jwt.verify(
-    req.params.token,
-    process.env.JWT_SECRET,
-    function (err, decoded) {
-      return decoded.id;
-    },
-  );
+exports.confirmEmailLink = catchAsync(async (req, res, next) => {
+  const { token } = req.params;
+  let decoded;
 
-  const user = await User.findById(decodedToken);
+  try {
+    // Verify the token synchronously. It will throw an error if invalid or expired.
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
+  } catch (err) {
+    return next(
+      new ErrorResponse('The confirmation link is invalid or has expired.', 400),
+    );
+  }
 
-  if (!user) return next(new ErrorResponse('No user found', 404));
+  const user = await User.findById(decoded.id);
+
+  if (!user) {
+    return next(new ErrorResponse('No user found for this link.', 404));
+  }
+
+  // Use the client URL from environment variables for redirection
+  const clientUrl = process.env.RESET_PASSWORD_LOCAL_URL || 'http://localhost:3000/';
+
+  if (user.isConfirmed) {
+    // User is already confirmed, redirect them. A query param could be added to show a message.
+    // e.g., res.redirect(`${clientUrl}?status=already-confirmed`);
+    return res.redirect(clientUrl);
+  }
+
   user.isConfirmed = true;
   await user.save();
-  if (process.env.NODE_ENV === 'production') {
-    return res.redirect('https://yourcorporatememory.com/');
-  } else {
-    return res.status(200).send({ message: 'Your Account has been Verified.' });
-  }
+
+  // Redirect to the client application on successful confirmation.
+  // e.g., res.redirect(`${clientUrl}?status=confirmed`);
+  return res.redirect(clientUrl);
 });

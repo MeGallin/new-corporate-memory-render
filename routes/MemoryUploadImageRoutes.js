@@ -1,5 +1,4 @@
 const express = require('express');
-const MemoryImage = require('../models/MemoryImageModel');
 const Memories = require('../models/MemoriesModel');
 const multer = require('multer');
 const path = require('path');
@@ -52,28 +51,21 @@ router.post(
       const memory = await Memories.findById(req.headers.memoryid);
 
       if (!memory) {
-        res.status(401);
+        res.status(404);
         throw new Error('No MEMORY found');
       } else {
-        // Create a new Instance of ProfileImages
-        let memoryImage = new MemoryImage({
-          id: req.headers.memoryid,
-          avatar: result.secure_url,
-          cloudinaryId: result.public_id,
-        });
-
         // Save the memory
         memory.memoryImage = result.secure_url;
         memory.cloudinaryId = result.public_id;
         await memory.save();
 
-        //Save user profile
-        await memoryImage.save();
-        res.status(200).json(memoryImage);
+        res.status(200).json({
+          memoryImage: memory.memoryImage,
+          cloudinaryId: memory.cloudinaryId,
+        });
       }
     } catch (error) {
-      res.status(401);
-      throw new Error(`Image not uploaded. ${error}`);
+      next(error);
     }
   },
 );
