@@ -15,10 +15,16 @@ const UserSchema = mongoose.Schema(
       unique: true,
       sparse: true,
       lowercase: true,
+      match: [
+        /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/,
+        'Please provide a valid email address',
+      ],
     },
     password: {
       type: String,
       required: [true, 'Password is required'],
+      minlength: [6, 'Password must be at least 6 characters long'],
+      select: false, // Do not return password field by default
     },
     isAdmin: {
       type: Boolean,
@@ -41,9 +47,6 @@ const UserSchema = mongoose.Schema(
     cloudinaryId: {
       type: String,
     },
-    resetPasswordToken: {
-      type: String,
-    },
     ipAddress: {
       type: String,
     },
@@ -61,41 +64,49 @@ const UserSchema = mongoose.Schema(
   },
   {
     timestamps: true,
+    versionKey: false,
   },
 );
 
-// This the pre-save middleware
+// Middleware: Hash password before saving
 UserSchema.pre('save', async function (next) {
+  // Only run this function if password was actually modified
   if (!this.isModified('password')) {
-    next();
+    return next();
   }
+
+  // Generate a salt and hash the password
   const salt = await bcrypt.genSalt(12);
   this.password = await bcrypt.hash(this.password, salt);
   next();
 });
 
-//This is an instance method
+// Method: Compare entered password to hashed password in database
 UserSchema.methods.matchPasswords = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
 
+// Method: Generate a signed JWT for authentication
 UserSchema.methods.getSignedToken = function () {
   return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE,
   });
 };
 
+// Method: Generate and hash a password reset token
 UserSchema.methods.getResetPasswordToken = function () {
   const resetToken = crypto.randomBytes(20).toString('hex');
 
+  // Hash token and set to resetPasswordToken field
   this.resetPasswordToken = crypto
     .createHash('sha256')
     .update(resetToken)
     .digest('hex');
 
-  this.resetPasswordExpire = Date.now() + 30 * (60 * 1000); //Currently set for 30 minutes
+  // Set expiration time (30 minutes from now)
+  this.resetPasswordExpire = Date.now() + 30 * 60 * 1000;
 
-  return resetToken;
+  return resetToken; // Return the unhashed token
 };
 
 const User = mongoose.model('User', UserSchema);

@@ -1,6 +1,5 @@
 const express = require('express');
 const User = require('../models/UserModel');
-const ProfileImage = require('../models/UserProfileImageModel');
 const multer = require('multer');
 const path = require('path');
 const cloudinary = require('cloudinary');
@@ -57,21 +56,15 @@ router.post(
         res.status(401);
         throw new Error('No USER found');
       } else {
-        // Create a new Instance of ProfileImages
-        let userProfileImage = new ProfileImage({
-          id: req.headers.userid,
-          avatar: result.secure_url,
-          cloudinaryId: result.public_id,
-        });
-
         // Save the USER
         user.profileImage = result.secure_url;
         user.cloudinaryId = result.public_id;
         await user.save();
 
-        //Save user profile
-        await userProfileImage.save();
-        res.status(200).json(userProfileImage);
+        res.status(200).json({ 
+          profileImage: user.profileImage,
+          cloudinaryId: user.cloudinaryId
+         });
       }
     } catch (error) {
       res.status(401);

@@ -1,6 +1,5 @@
 const crypto = require('crypto');
 const User = require('../models/UserModel');
-const UserProfileImage = require('../models/UserProfileImageModel');
 const ErrorResponse = require('../utils/errorResponse');
 const sendEmail = require('../utils/sendEmail');
 const jwt = require('jsonwebtoken');
@@ -133,8 +132,8 @@ exports.googleLogin = catchAsync(async (req, res, next) => {
 // @description: USER ADMIN DETAIL UPDATE
 // @route: PUT /api/user/:id
 // @access: Private
-exports.userUpdateAdminDetails = catchAsync(async (req, res, next) => {
-  const user = await User.findById(req.params.id);
+exports.updateUserDetails = catchAsync(async (req, res, next) => {
+  const user = await User.findById(req.user.id);
 
   if (!user) return new ErrorResponse('User not found', 400);
   user.name = req.body.name || user.name;
@@ -149,37 +148,7 @@ exports.userUpdateAdminDetails = catchAsync(async (req, res, next) => {
   });
 });
 
-//Forgot PW
-exports.forgotPassword = catchAsync(async (req, res, next) => {
-  const { email } = req.body;
 
-  const user = await User.findOne({ email });
-
-  if (!user) return next(new ErrorResponse('Email could not be set', 404));
-
-  try {
-    const resetToken = user.getResetPasswordToken();
-    await user.save();
-    const resetUrl = `${process.env.RESET_PASSWORD_LOCAL_URL}#/password-reset/${resetToken}`;
-    const message = `<h1>You have requested a password reset.</h1><p>Please click on the following link to reset your password.</p><p><a href=${resetUrl} id='link'>Click here to verify</a></p>`;
-    // Send Email
-
-    sendEmail({
-      from: process.env.MAILER_FROM,
-      to: user.email,
-      subject: 'Password Reset Request',
-      html: message,
-    });
-
-    res.status(200).json({ success: true, data: `Email sent successfully` });
-  } catch (error) {
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
-
-    await user.save();
-    return next(new ErrorResponse('Email could not be set', 500));
-  }
-});
 
 // @description: USER forgot PW request
 // @route: PUT /api/forgot-password
@@ -255,14 +224,10 @@ exports.getUserDetails = catchAsync(async (req, res, next) => {
 // @route: DELETE /api/user-profile-image-delete/:id
 // @access: Private
 exports.deleteUserProfileImage = catchAsync(async (req, res, next) => {
-  const user = await User.findById(req.params.id);
+  const user = await User.findById(req.user.id);
 
   if (!user) return next(new ErrorResponse('No User found!', 401));
-  // Associate it with memory image
-  const image = await UserProfileImage.findOne({
-    cloudinaryId: user.cloudinaryId,
-  });
-  await image.remove();
+  // Since the UserProfileImage model is removed, we no longer need to find and remove the separate image record.
 
   //Delete image from Cloudinary
   cloudinary.config({
