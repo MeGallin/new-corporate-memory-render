@@ -1,16 +1,14 @@
 const express = require('express');
 const { protect, admin } = require('../middleWare/authMiddleWare');
 const {
-  adminGetAllUserData,
+  getAllUsers, // Renamed from adminGetAllUserData
   adminToggleUserIsAdmin,
   adminToggleUserIsSuspended,
   adminDeleteAllUserData,
 } = require('../controllers/AdminController');
 const router = express.Router();
 
-router
-  .route('/admin/user-details-memories')
-  .get(protect, admin, adminGetAllUserData);
+router.route('/admin/users').get(protect, admin, getAllUsers); // Route updated
 router
   .route('/admin/user-is-admin/:id')
   .put(protect, admin, adminToggleUserIsAdmin);
