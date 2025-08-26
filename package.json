@@ -18,6 +18,9 @@
     "url": "https://github.com/MeGallin/new-corporate-memory/issues"
   },
   "homepage": "https://github.com/MeGallin/new-corporate-memory#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cloudinary": "^1.33.0",
