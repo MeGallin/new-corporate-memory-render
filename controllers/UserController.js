@@ -1,16 +1,16 @@
-const crypto = require('crypto');
-const User = require('../models/UserModel');
-const ErrorResponse = require('../utils/errorResponse');
-const sendEmail = require('../utils/sendEmail');
-const jwt = require('jsonwebtoken');
-const requestIp = require('request-ip');
-const cloudinary = require('cloudinary');
-const catchAsync = require('../utils/catchAsync');
+import crypto from 'crypto';
+import User from '../models/UserModel.js';
+import ErrorResponse from '../utils/errorResponse.js';
+import sendEmail from '../utils/sendEmail.js';
+import jwt from 'jsonwebtoken';
+import requestIp from 'request-ip';
+import cloudinary from 'cloudinary';
+import catchAsync from '../utils/catchAsync.js';
 
 // @description: Register new user
 // @route: POST /api/register
 // @access: Public
-exports.register = catchAsync(async (req, res, next) => {
+export const register = catchAsync(async (req, res, next) => {
   const ipAddress = requestIp.getClientIp(req);
   const { name, email, password } = req.body;
 
@@ -63,7 +63,7 @@ const sendToken = (user, statusCode, res) => {
 // @description: USER login
 // @route: POST /api/login
 // @access: Public
-exports.login = catchAsync(async (req, res, next) => {
+export const login = catchAsync(async (req, res, next) => {
   const ipAddress = requestIp.getClientIp(req);
   const { email, password } = req.body;
 
@@ -92,7 +92,7 @@ exports.login = catchAsync(async (req, res, next) => {
 });
 
 //Google Login
-exports.googleLogin = catchAsync(async (req, res, next) => {
+export const googleLogin = catchAsync(async (req, res, next) => {
   const ipAddress = requestIp.getClientIp(req);
   token = req.body.headers.Authorization.split(' ')[1];
 
@@ -132,7 +132,7 @@ exports.googleLogin = catchAsync(async (req, res, next) => {
 // @description: USER ADMIN DETAIL UPDATE
 // @route: PUT /api/user/:id
 // @access: Private
-exports.updateUserDetails = catchAsync(async (req, res, next) => {
+export const updateUserDetails = catchAsync(async (req, res, next) => {
   const user = await User.findById(req.user.id);
 
   if (!user) return new ErrorResponse('User not found', 400);
@@ -153,7 +153,7 @@ exports.updateUserDetails = catchAsync(async (req, res, next) => {
 // @description: USER forgot PW request
 // @route: PUT /api/forgot-password
 // @access: Private
-exports.forgotPassword = catchAsync(async (req, res, next) => {
+export const forgotPassword = catchAsync(async (req, res, next) => {
   const { email } = req.body;
 
   const user = await User.findOne({ email });
@@ -187,7 +187,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 // @description: USER ADMIN Password reset
 // @route: PUT /api/resetpassword/:token
 // @access: Private
-exports.resetPassword = catchAsync(async (req, res, next) => {
+export const resetPassword = catchAsync(async (req, res, next) => {
   const resetPasswordToken = crypto
     .createHash('sha256')
     .update(req.params.token)
@@ -212,7 +212,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
 // @description: Get user data of logged in in user
 // @route: GET /api/users/user
 // @access: PRIVATE
-exports.getUserDetails = catchAsync(async (req, res, next) => {
+export const getUserDetails = catchAsync(async (req, res, next) => {
   const userDetails = await User.findById(req.user.id);
 
   if (!userDetails)
@@ -223,7 +223,7 @@ exports.getUserDetails = catchAsync(async (req, res, next) => {
 // @description: Delete a User Profile Image
 // @route: DELETE /api/user-profile-image-delete/:id
 // @access: Private
-exports.deleteUserProfileImage = catchAsync(async (req, res, next) => {
+export const deleteUserProfileImage = catchAsync(async (req, res, next) => {
   const user = await User.findById(req.user.id);
 
   if (!user) return next(new ErrorResponse('No User found!', 401));

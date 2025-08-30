@@ -1,7 +1,7 @@
-const express = require('express');
+import express from 'express';
+import { pageHits } from '../controllers/PageHitsController.js';
 const router = express.Router();
-const { pageHits } = require('../controllers/PageHitsController');
 
 router.route('/page-hits').get(pageHits);
 
-module.exports = router;
+export default router;

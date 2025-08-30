@@ -1,11 +1,11 @@
-const Memories = require('../models/MemoriesModel');
-const User = require('../models/UserModel');
-const ErrorResponse = require('../utils/errorResponse');
-const moment = require('moment');
-const cron = require('node-cron');
-const sendEmail = require('../utils/sendEmail');
-const cloudinary = require('cloudinary');
-const catchAsync = require('../utils/catchAsync');
+import Memories from '../models/MemoriesModel.js';
+import User from '../models/UserModel.js';
+import ErrorResponse from '../utils/errorResponse.js';
+import moment from 'moment';
+import cron from 'node-cron';
+import sendEmail from '../utils/sendEmail.js';
+import cloudinary from 'cloudinary';
+import catchAsync from '../utils/catchAsync.js';
 
 // @description: USER get all memories
 // @route: GET /api/memories
@@ -13,7 +13,7 @@ const catchAsync = require('../utils/catchAsync');
 
 
 
-exports.memories = catchAsync(async (req, res, next) => {
+export const memories = catchAsync(async (req, res, next) => {
   const memories = await Memories.find({ user: req.user._id }).sort({
     createdAt: -1,
   });
@@ -29,7 +29,7 @@ exports.memories = catchAsync(async (req, res, next) => {
 // @description: USER Create a memory
 // @route: GET /api/create-memory
 // @access: Private
-exports.createMemory = catchAsync(async (req, res, next) => {
+export const createMemory = catchAsync(async (req, res, next) => {
   const { title, memory, dueDate, tag, priority, isComplete } =
     req.body;
   const userId = req.user._id;
@@ -58,7 +58,7 @@ exports.createMemory = catchAsync(async (req, res, next) => {
 // @description: EDIT and UPDATE a memory
 // @route: GET /api/edit-memory/:id
 // @access: PRIVATE
-exports.editMemory = catchAsync(async (req, res, next) => {
+export const editMemory = catchAsync(async (req, res, next) => {
   const memoryToUpdate = await Memories.findOne({ _id: req.params.id, user: req.user._id });
 
   if (!memoryToUpdate) {
@@ -94,7 +94,7 @@ exports.editMemory = catchAsync(async (req, res, next) => {
 // @description: Delete a memory
 // @route: GET /api/delete-memory/:id
 // @access: PRIVATE
-exports.deleteMemory = catchAsync(async (req, res, next) => {
+export const deleteMemory = catchAsync(async (req, res, next) => {
   const memory = await Memories.findOne({ _id: req.params.id, user: req.user._id });
 
   if (!memory) {
@@ -108,7 +108,7 @@ exports.deleteMemory = catchAsync(async (req, res, next) => {
 // @description: USER Delete a tag
 // @route: DELETE /api/delete-memory-tag/:id
 // @access: Private
-exports.deleteMemoryTag = catchAsync(async (req, res, next) => {
+export const deleteMemoryTag = catchAsync(async (req, res, next) => {
   const memory = await Memories.findOne({ _id: req.params.id, user: req.user._id });
 
   if (!memory) {
@@ -123,7 +123,7 @@ exports.deleteMemoryTag = catchAsync(async (req, res, next) => {
 // @description: Delete a Memory Image
 // @route: DELETE /api/memory-image-delete/:id
 // @access: Private
-exports.deleteMemoryImage = catchAsync(async (req, res, next) => {
+export const deleteMemoryImage = catchAsync(async (req, res, next) => {
   const memory = await Memories.findOne({ _id: req.params.id, user: req.user._id });
 
   if (!memory) {

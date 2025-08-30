@@ -1,8 +1,8 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/UserModel');
-const ErrorResponse = require('../utils/errorResponse');
+import jwt from 'jsonwebtoken';
+import User from '../models/UserModel.js';
+import ErrorResponse from '../utils/errorResponse.js';
 
-exports.protect = async (req, res, next) => {
+export const protect = async (req, res, next) => {
   let token;
   if (
     req.headers.authorization &&
@@ -31,7 +31,7 @@ exports.protect = async (req, res, next) => {
   }
 };
 
-exports.admin = (req, res, next) => {
+export const admin = (req, res, next) => {
   if (req.user && req.user.isAdmin) {
     next();
   } else {

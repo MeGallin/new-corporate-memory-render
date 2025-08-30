@@ -1,14 +1,15 @@
-const express = require('express');
-const { protect, admin } = require('../middleWare/authMiddleWare');
-const {
-  getAllUsers, // Renamed from adminGetAllUserData
+import express from 'express';
+import { protect, admin } from '../middleWare/authMiddleWare.js';
+import {
+  getAllUsers,
   adminToggleUserIsAdmin,
   adminToggleUserIsSuspended,
   adminDeleteAllUserData,
-} = require('../controllers/AdminController');
+} from '../controllers/AdminController.js';
+
 const router = express.Router();
 
-router.route('/admin/users').get(protect, admin, getAllUsers); // Route updated
+router.route('/admin/users').get(protect, admin, getAllUsers);
 router
   .route('/admin/user-is-admin/:id')
   .put(protect, admin, adminToggleUserIsAdmin);
@@ -19,4 +20,4 @@ router
   .route('/admin/user-memories-delete/:id')
   .delete(protect, admin, adminDeleteAllUserData);
 
-module.exports = router;
+export default router;

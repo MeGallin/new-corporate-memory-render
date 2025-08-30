@@ -1,8 +1,8 @@
-const PageHits = require('../models/PageHitsModel');
-const requestIp = require('request-ip');
-const catchAsync = require('../utils/catchAsync');
+import PageHits from '../models/PageHitsModel.js';
+import requestIp from 'request-ip';
+import catchAsync from '../utils/catchAsync.js';
 
-exports.pageHits = catchAsync(async (req, res, next) => {
+export const pageHits = catchAsync(async (req, res, next) => {
   const ipAddress = requestIp.getClientIp(req);
   let statusCode = 200; // Default to 200 OK for existing IPs
 

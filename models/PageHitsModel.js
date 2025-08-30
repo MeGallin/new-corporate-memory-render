@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const PageHitsSchema = mongoose.Schema(
   {
@@ -16,4 +16,4 @@ const PageHitsSchema = mongoose.Schema(
 
 const PageHits = mongoose.model('PageHits', PageHitsSchema);
 
-module.exports = PageHits;
+export default PageHits;

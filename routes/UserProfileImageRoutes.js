@@ -1,9 +1,9 @@
-const express = require('express');
-const User = require('../models/UserModel');
-const multer = require('multer');
-const path = require('path');
-const cloudinary = require('cloudinary');
-const { protect } = require('../middleWare/authMiddleWare');
+import express from 'express';
+import User from '../models/UserModel.js';
+import multer from 'multer';
+import path from 'path';
+import cloudinary from 'cloudinary';
+import { protect } from '../middleWare/authMiddleWare.js';
 
 const router = express.Router();
 
@@ -73,4 +73,4 @@ router.post(
   },
 );
 
-module.exports = router;
+export default router;

@@ -1,5 +1,6 @@
-require('dotenv').config({ path: './config.env' });
-const mongoose = require('mongoose');
+import dotenv from 'dotenv';
+dotenv.config({ path: './config.env' });
+import mongoose from 'mongoose';
 
 const connectDB = async () => {
   try {
@@ -15,4 +16,4 @@ const connectDB = async () => {
   }
 };
 mongoose.set('strictQuery', false);
-module.exports = connectDB;
+export default connectDB;

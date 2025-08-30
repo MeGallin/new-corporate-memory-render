@@ -1,16 +1,16 @@
-const express = require('express');
-const router = express.Router();
-const {
+import express from 'express';
+import {
   register,
   login,
-  updateUserDetails, // Renamed from userUpdateAdminDetails
+  updateUserDetails,
   forgotPassword,
   resetPassword,
   getUserDetails,
   googleLogin,
   deleteUserProfileImage,
-} = require('../controllers/UserController');
-const { protect } = require('../middleWare/authMiddleWare');
+} from '../controllers/UserController.js';
+import { protect } from '../middleWare/authMiddleWare.js';
+const router = express.Router();
 
 router.route('/register').post(register);
 router.route('/login').post(login);
@@ -30,4 +30,4 @@ router
 router.route('/forgot-password').post(forgotPassword);
 router.route('/resetpassword/:token').put(resetPassword);
 
-module.exports = router;
+export default router;

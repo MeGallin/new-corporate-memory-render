@@ -1,8 +1,8 @@
-const express = require('express');
-const Memories = require('../models/MemoriesModel');
-const multer = require('multer');
-const path = require('path');
-const cloudinary = require('cloudinary');
+import express from 'express';
+import Memories from '../models/MemoriesModel.js';
+import multer from 'multer';
+import path from 'path';
+import cloudinary from 'cloudinary';
 
 const router = express.Router();
 
@@ -70,4 +70,4 @@ router.post(
   },
 );
 
-module.exports = router;
+export default router;

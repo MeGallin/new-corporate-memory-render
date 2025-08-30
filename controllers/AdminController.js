@@ -1,13 +1,13 @@
-const User = require('../models/UserModel');
-const Memories = require('../models/MemoriesModel');
-const mongoose = require('mongoose');
-const ErrorResponse = require('../utils/errorResponse');
-const catchAsync = require('../utils/catchAsync');
+import User from '../models/UserModel.js';
+import Memories from '../models/MemoriesModel.js';
+import mongoose from 'mongoose';
+import ErrorResponse from '../utils/errorResponse.js';
+import catchAsync from '../utils/catchAsync.js';
 
 // @description: Get all users
 // @route: GET /api/admin/users
 // @access: Admin and Private
-exports.getAllUsers = catchAsync(async (req, res, next) => {
+export const getAllUsers = catchAsync(async (req, res, next) => {
   const users = await User.find();
 
   if (!users)
@@ -22,7 +22,7 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
 // @description: Toggle is Admin rights
 // @route: PUT /api/admin/user-is-admin/:id
 // @access: Admin and Private
-exports.adminToggleUserIsAdmin = catchAsync(async (req, res, next) => {
+export const adminToggleUserIsAdmin = catchAsync(async (req, res, next) => {
   if (req.user.id === req.params.id) {
     return next(new ErrorResponse('Admins cannot change their own status.', 400));
   }
@@ -37,7 +37,7 @@ exports.adminToggleUserIsAdmin = catchAsync(async (req, res, next) => {
 // @description: Toggle is Suspended
 // @route: PUT admin/user-is-suspended/:id
 // @access: Admin and Private
-exports.adminToggleUserIsSuspended = catchAsync(async (req, res, next) => {
+export const adminToggleUserIsSuspended = catchAsync(async (req, res, next) => {
   if (req.user.id === req.params.id) {
     return next(new ErrorResponse('Admins cannot change their own status.', 400));
   }
@@ -52,7 +52,7 @@ exports.adminToggleUserIsSuspended = catchAsync(async (req, res, next) => {
 // @description: Delete a user and their memories
 // @route: DELETE admin/user-memories-delete/:id
 // @access: Admin and Private
-exports.adminDeleteAllUserData = catchAsync(async (req, res, next) => {
+export const adminDeleteAllUserData = catchAsync(async (req, res, next) => {
   if (req.user.id === req.params.id) {
     return next(new ErrorResponse('Admins cannot delete their own account.', 400));
   }

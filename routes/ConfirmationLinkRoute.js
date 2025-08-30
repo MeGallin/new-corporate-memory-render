@@ -1,10 +1,8 @@
-const express = require('express');
-const {
-  confirmEmailLink,
-} = require('../controllers/ConfirmationLinkController');
+import express from 'express';
+import { confirmEmailLink } from '../controllers/ConfirmationLinkController.js';
 
 const router = express.Router();
 
 router.route('/confirm-email/:token').get(confirmEmailLink);
 
-module.exports = router;
+export default router;

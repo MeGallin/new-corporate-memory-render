@@ -1,14 +1,14 @@
-const express = require('express');
-const router = express.Router();
-const {
+import express from 'express';
+import {
   memories,
   createMemory,
   editMemory,
   deleteMemory,
   deleteMemoryTag,
   deleteMemoryImage,
-} = require('../controllers/MemoriesController');
-const { protect } = require('../middleWare/authMiddleWare');
+} from '../controllers/MemoriesController.js';
+import { protect } from '../middleWare/authMiddleWare.js';
+const router = express.Router();
 
 // POST /api/memories
 // GET /api/memories
@@ -27,4 +27,4 @@ router.route('/memories/:id/tag').delete(protect, deleteMemoryTag);
 // DELETE /api/memories/:id/image
 router.route('/memories/:id/image').delete(protect, deleteMemoryImage);
 
-module.exports = router;
+export default router;

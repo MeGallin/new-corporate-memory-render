@@ -1,12 +1,12 @@
-const User = require('../models/UserModel');
-const jwt = require('jsonwebtoken');
-const ErrorResponse = require('../utils/errorResponse');
-const catchAsync = require('../utils/catchAsync');
+import User from '../models/UserModel.js';
+import jwt from 'jsonwebtoken';
+import ErrorResponse from '../utils/errorResponse.js';
+import catchAsync from '../utils/catchAsync.js';
 
 // @description: Confirmation Email
 // @route: GET /api/confirm-email/:token
 // @access: public
-exports.confirmEmailLink = catchAsync(async (req, res, next) => {
+export const confirmEmailLink = catchAsync(async (req, res, next) => {
   const { token } = req.params;
   let decoded;
 

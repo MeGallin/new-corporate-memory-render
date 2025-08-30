@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const { encryptMemory, decryptMemory, isCiphertext } = require('../utils/memoryCrypto');
+import mongoose from 'mongoose';
+import { encryptMemory, decryptMemory, isCiphertext } from '../utils/memoryCrypto.js';
 
 const MemoriesSchema = mongoose.Schema(
   {
@@ -87,4 +87,4 @@ MemoriesSchema.set('toJSON', { transform: transformOut });
 MemoriesSchema.set('toObject', { transform: transformOut });
 
 const Memories = mongoose.model('Memories', MemoriesSchema);
-module.exports = Memories;
+export default Memories;

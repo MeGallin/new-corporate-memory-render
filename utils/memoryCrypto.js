@@ -1,4 +1,4 @@
-const crypto = require('crypto');
+import crypto from 'crypto';
 
 const PREFIX = 'gcm1:';
 const IV_LEN = 12;
@@ -46,4 +46,4 @@ function decryptMemory(value, userId) {
   return Buffer.concat([decipher.update(enc), decipher.final()]).toString('utf8');
 }
 
-module.exports = { isCiphertext, encryptMemory, decryptMemory };
+export { isCiphertext, encryptMemory, decryptMemory };

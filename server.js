@@ -1,12 +1,13 @@
-require('dotenv').config({ path: './config.env' });
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet'); // New import
-const compression = require('compression'); // New import
-const morgan = require('morgan'); // New import
-const connectDB = require('./config/db');
-const ErrorResponse = require('./utils/errorResponse'); // Import ErrorResponse for custom error handling
-const { scheduleReminderEmails } = require('./utils/cronJobs');
+import dotenv from 'dotenv';
+dotenv.config({ path: './config.env' });
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import compression from 'compression';
+import morgan from 'morgan';
+import connectDB from './config/db.js';
+import ErrorResponse from './utils/errorResponse.js';
+import { scheduleReminderEmails } from './utils/cronJobs.js';
 
 const app = express();
 
@@ -37,14 +38,23 @@ app.use(morgan('dev')); // 'combined' for production, 'dev' for development
 app.use(express.json());
 app.use(compression()); // Apply compression
 //Routes
-app.use('/api/', require('./routes/PageHitsRoute'));
-app.use('/api/', require('./routes/UserRoutes'));
-app.use('/api/', require('./routes/MemoriesRoute'));
-app.use('/api/', require('./routes/ContactFormRoute'));
-app.use('/api/', require('./routes/ConfirmationLinkRoute'));
-app.use('/api/', require('./routes/MemoryUploadImageRoutes'));
-app.use('/api/', require('./routes/UserProfileImageRoutes'));
-app.use('/api/', require('./routes/AdminRoute'));
+import PageHitsRoute from './routes/PageHitsRoute.js';
+import UserRoutes from './routes/UserRoutes.js';
+import MemoriesRoute from './routes/MemoriesRoute.js';
+import ContactFormRoute from './routes/ContactFormRoute.js';
+import ConfirmationLinkRoute from './routes/ConfirmationLinkRoute.js';
+import MemoryUploadImageRoutes from './routes/MemoryUploadImageRoutes.js';
+import UserProfileImageRoutes from './routes/UserProfileImageRoutes.js';
+import AdminRoute from './routes/AdminRoute.js';
+
+app.use('/api/', PageHitsRoute);
+app.use('/api/', UserRoutes);
+app.use('/api/', MemoriesRoute);
+app.use('/api/', ContactFormRoute);
+app.use('/api/', ConfirmationLinkRoute);
+app.use('/api/', MemoryUploadImageRoutes);
+app.use('/api/', UserProfileImageRoutes);
+app.use('/api/', AdminRoute);
 
 // Basic route error handler (404 Not Found)
 app.all('*', (req, res, next) => {

@@ -1,6 +1,6 @@
-const ErrorResponse = require('../utils/errorResponse');
-const sendEmail = require('../utils/sendEmail');
-const catchAsync = require('../utils/catchAsync');
+import ErrorResponse from '../utils/errorResponse.js';
+import sendEmail from '../utils/sendEmail.js';
+import catchAsync from '../utils/catchAsync.js';
 
 // Basic HTML escaping function to prevent HTML injection
 const escapeHTML = (str) =>
@@ -15,7 +15,7 @@ const escapeHTML = (str) =>
 // Basic email validation regex
 const emailRegEx = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
 
-exports.sendContactForm = catchAsync(async (req, res, next) => {
+export const sendContactForm = catchAsync(async (req, res, next) => {
   const { name, email, message } = req.body;
 
   // Improved validation

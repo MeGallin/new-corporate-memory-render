@@ -1,11 +1,11 @@
-const cron = require('node-cron');
-const moment = require('moment');
-const Memories = require('../models/MemoriesModel');
-const User = require('../models/UserModel');
-const sendEmail = require('./sendEmail');
+import cron from 'node-cron';
+import moment from 'moment';
+import Memories from '../models/MemoriesModel.js';
+import User from '../models/UserModel.js';
+import sendEmail from './sendEmail.js';
 
 // This job runs every day at 8:00 AM.
-const scheduleReminderEmails = () => {
+export const scheduleReminderEmails = () => {
   cron.schedule(
     '0 8 * * *',
     async () => {
@@ -59,4 +59,3 @@ const scheduleReminderEmails = () => {
   );
 };
 
-module.exports = { scheduleReminderEmails };
