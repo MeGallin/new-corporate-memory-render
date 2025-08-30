@@ -1,5 +1,9 @@
 import mongoose from 'mongoose';
-import { encryptMemory, decryptMemory, isCiphertext } from '../utils/memoryCrypto.js';
+import {
+  encryptMemory,
+  decryptMemory,
+  isCiphertext,
+} from '../utils/memoryCrypto.js';
 
 const MemoriesSchema = mongoose.Schema(
   {
@@ -27,11 +31,12 @@ const MemoriesSchema = mongoose.Schema(
     memoryImage: { type: String },
     cloudinaryId: { type: String },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 function shouldEncrypt(doc) {
-  const enabled = String(process.env.ENCRYPTION_ENABLED || '').toLowerCase() !== 'false';
+  const enabled =
+    String(process.env.ENCRYPTION_ENABLED || '').toLowerCase() !== 'false';
   return enabled && typeof doc.memory === 'string' && !isCiphertext(doc.memory);
 }
 
@@ -42,7 +47,9 @@ MemoriesSchema.pre('save', function (next) {
       this.memory = encryptMemory(this.memory, this.user.toString());
     }
     next();
-  } catch (e) { next(e); }
+  } catch (e) {
+    next(e);
+  }
 });
 
 // Encrypt on findOneAndUpdate
@@ -52,12 +59,16 @@ MemoriesSchema.pre('findOneAndUpdate', async function (next) {
     const setter = update.$set || update;
     if (!(setter && typeof setter.memory === 'string')) return next();
 
-    const enabled = String(process.env.ENCRYPTION_ENABLED || '').toLowerCase() !== 'false';
+    const enabled =
+      String(process.env.ENCRYPTION_ENABLED || '').toLowerCase() !== 'false';
     if (!enabled || isCiphertext(setter.memory)) return next();
 
     let userId = setter.user;
     if (!userId) {
-      const doc = await this.model.findOne(this.getQuery()).select('user').lean();
+      const doc = await this.model
+        .findOne(this.getQuery())
+        .select('user')
+        .lean();
       userId = doc?.user;
     }
     if (!userId) return next();
@@ -67,7 +78,9 @@ MemoriesSchema.pre('findOneAndUpdate', async function (next) {
     else this.setUpdate({ ...update, memory: encrypted });
 
     next();
-  } catch (e) { next(e); }
+  } catch (e) {
+    next(e);
+  }
 });
 
 // Decrypt on output

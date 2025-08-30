@@ -12,22 +12,29 @@ import { scheduleReminderEmails } from './utils/cronJobs.js';
 const app = express();
 
 // CORS Configuration
-const allowedOrigins = process.env.NODE_ENV === 'production'
-  ? ['https://yourcorporatememory.com', 'https://new-corporate-memory-api.onrender.com'] // Added actual production domains
-  : ['http://localhost:3000', 'http://localhost:5000']; // Development origins
+const allowedOrigins =
+  process.env.NODE_ENV === 'production'
+    ? [
+        'https://yourcorporatememory.com',
+        'https://new-corporate-memory-api.onrender.com',
+      ] // Added actual production domains
+    : ['http://localhost:3000', 'http://localhost:5000']; // Development origins
 
-app.use(cors({
-  origin: function (origin, callback) {
-    // allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
-    }
-    return callback(null, true);
-  },
-  credentials: true, // Allow cookies to be sent
-}));
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) === -1) {
+        const msg =
+          'The CORS policy for this site does not allow access from the specified Origin.';
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
+    credentials: true, // Allow cookies to be sent
+  }),
+);
 
 // Security Headers
 app.use(helmet());

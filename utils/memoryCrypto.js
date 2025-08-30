@@ -14,7 +14,13 @@ function getMasterKey() {
 }
 
 function deriveDataKey(userId) {
-  return crypto.hkdfSync('sha256', getMasterKey(), Buffer.alloc(0), Buffer.from(`memories:${userId}`), KEY_LEN);
+  return crypto.hkdfSync(
+    'sha256',
+    getMasterKey(),
+    Buffer.alloc(0),
+    Buffer.from(`memories:${userId}`),
+    KEY_LEN,
+  );
 }
 
 function isCiphertext(val) {
@@ -26,7 +32,10 @@ function encryptMemory(plaintext, userId) {
   const key = deriveDataKey(String(userId));
   const iv = crypto.randomBytes(IV_LEN);
   const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
-  const enc = Buffer.concat([cipher.update(String(plaintext), 'utf8'), cipher.final()]);
+  const enc = Buffer.concat([
+    cipher.update(String(plaintext), 'utf8'),
+    cipher.final(),
+  ]);
   const tag = cipher.getAuthTag();
   const payload = Buffer.concat([iv, tag, enc]).toString('base64');
   return `${PREFIX}${payload}`;
@@ -43,7 +52,9 @@ function decryptMemory(value, userId) {
   const enc = buf.subarray(IV_LEN + TAG_LEN);
   const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
   decipher.setAuthTag(tag);
-  return Buffer.concat([decipher.update(enc), decipher.final()]).toString('utf8');
+  return Buffer.concat([decipher.update(enc), decipher.final()]).toString(
+    'utf8',
+  );
 }
 
 export { isCiphertext, encryptMemory, decryptMemory };

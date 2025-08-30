@@ -15,7 +15,10 @@ export const confirmEmailLink = catchAsync(async (req, res, next) => {
     decoded = jwt.verify(token, process.env.JWT_SECRET);
   } catch (err) {
     return next(
-      new ErrorResponse('The confirmation link is invalid or has expired.', 400),
+      new ErrorResponse(
+        'The confirmation link is invalid or has expired.',
+        400,
+      ),
     );
   }
 
@@ -26,7 +29,8 @@ export const confirmEmailLink = catchAsync(async (req, res, next) => {
   }
 
   // Use the client URL from environment variables for redirection
-  const clientUrl = process.env.RESET_PASSWORD_LOCAL_URL || 'http://localhost:3000/';
+  const clientUrl =
+    process.env.RESET_PASSWORD_LOCAL_URL || 'http://localhost:3000/';
 
   if (user.isConfirmed) {
     // User is already confirmed, redirect them. A query param could be added to show a message.

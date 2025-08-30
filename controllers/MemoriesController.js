@@ -11,8 +11,6 @@ import catchAsync from '../utils/catchAsync.js';
 // @route: GET /api/memories
 // @access: Private
 
-
-
 export const memories = catchAsync(async (req, res, next) => {
   const memories = await Memories.find({ user: req.user._id }).sort({
     createdAt: -1,
@@ -30,8 +28,7 @@ export const memories = catchAsync(async (req, res, next) => {
 // @route: GET /api/create-memory
 // @access: Private
 export const createMemory = catchAsync(async (req, res, next) => {
-  const { title, memory, dueDate, tag, priority, isComplete } =
-    req.body;
+  const { title, memory, dueDate, tag, priority, isComplete } = req.body;
   const userId = req.user._id;
 
   if (!title || !memory)
@@ -59,10 +56,15 @@ export const createMemory = catchAsync(async (req, res, next) => {
 // @route: GET /api/edit-memory/:id
 // @access: PRIVATE
 export const editMemory = catchAsync(async (req, res, next) => {
-  const memoryToUpdate = await Memories.findOne({ _id: req.params.id, user: req.user._id });
+  const memoryToUpdate = await Memories.findOne({
+    _id: req.params.id,
+    user: req.user._id,
+  });
 
   if (!memoryToUpdate) {
-    return next(new ErrorResponse('Memory not found or user not authorized', 404));
+    return next(
+      new ErrorResponse('Memory not found or user not authorized', 404),
+    );
   }
 
   const { title, memory, dueDate, tag, priority, isComplete } = req.body;
@@ -95,10 +97,15 @@ export const editMemory = catchAsync(async (req, res, next) => {
 // @route: GET /api/delete-memory/:id
 // @access: PRIVATE
 export const deleteMemory = catchAsync(async (req, res, next) => {
-  const memory = await Memories.findOne({ _id: req.params.id, user: req.user._id });
+  const memory = await Memories.findOne({
+    _id: req.params.id,
+    user: req.user._id,
+  });
 
   if (!memory) {
-    return next(new ErrorResponse('Memory not found or user not authorized', 404));
+    return next(
+      new ErrorResponse('Memory not found or user not authorized', 404),
+    );
   }
 
   await memory.deleteOne(); // Replaced deprecated remove()
@@ -109,10 +116,15 @@ export const deleteMemory = catchAsync(async (req, res, next) => {
 // @route: DELETE /api/delete-memory-tag/:id
 // @access: Private
 export const deleteMemoryTag = catchAsync(async (req, res, next) => {
-  const memory = await Memories.findOne({ _id: req.params.id, user: req.user._id });
+  const memory = await Memories.findOne({
+    _id: req.params.id,
+    user: req.user._id,
+  });
 
   if (!memory) {
-    return next(new ErrorResponse('Memory not found or user not authorized', 404));
+    return next(
+      new ErrorResponse('Memory not found or user not authorized', 404),
+    );
   }
   // Remove object for array
   memory.tag = null;
@@ -124,10 +136,15 @@ export const deleteMemoryTag = catchAsync(async (req, res, next) => {
 // @route: DELETE /api/memory-image-delete/:id
 // @access: Private
 export const deleteMemoryImage = catchAsync(async (req, res, next) => {
-  const memory = await Memories.findOne({ _id: req.params.id, user: req.user._id });
+  const memory = await Memories.findOne({
+    _id: req.params.id,
+    user: req.user._id,
+  });
 
   if (!memory) {
-    return next(new ErrorResponse('Memory not found or user not authorized', 404));
+    return next(
+      new ErrorResponse('Memory not found or user not authorized', 404),
+    );
   }
 
   //Delete image from Cloudinary

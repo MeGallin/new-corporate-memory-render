@@ -23,9 +23,7 @@ router
   .put(protect, updateUserDetails); // Route updated from /user/:id
 
 // Consolidated user profile image routes
-router
-  .route('/user-profile-image')
-  .delete(protect, deleteUserProfileImage); // Route updated from /user-profile-image-delete/:id
+router.route('/user-profile-image').delete(protect, deleteUserProfileImage); // Route updated from /user-profile-image-delete/:id
 
 router.route('/forgot-password').post(forgotPassword);
 router.route('/resetpassword/:token').put(resetPassword);

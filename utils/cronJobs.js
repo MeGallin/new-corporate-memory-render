@@ -26,8 +26,12 @@ export const scheduleReminderEmails = () => {
           const text = `
             <h1>Hi ${user.name}</h1>
             <p>You have a memory due within the next seven (7) days.</p>
-            <h3>The title is: <span style="color: orange;">${memory.title}</span></h3>
-            <p>The task is due on ${moment(memory.dueDate).format('MMMM Do YYYY')}</p>
+            <h3>The title is: <span style="color: orange;">${
+              memory.title
+            }</span></h3>
+            <p>The task is due on ${moment(memory.dueDate).format(
+              'MMMM Do YYYY',
+            )}</p>
             <p>Please log into <a href="https://yourcorporatememory.com" id="link">YOUR ACCOUNT</a> to see the reminder</p>
             <p>Thank you</p>
             <h3>Your Corporate Memory Management</h3>
@@ -54,8 +58,7 @@ export const scheduleReminderEmails = () => {
     },
     {
       scheduled: true,
-      timezone: "Europe/London", // It's good practice to set a timezone
+      timezone: 'Europe/London', // It's good practice to set a timezone
     },
   );
 };
-

@@ -148,8 +148,6 @@ export const updateUserDetails = catchAsync(async (req, res, next) => {
   });
 });
 
-
-
 // @description: USER forgot PW request
 // @route: PUT /api/forgot-password
 // @access: Private

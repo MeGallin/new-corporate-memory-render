@@ -61,10 +61,10 @@ router.post(
         user.cloudinaryId = result.public_id;
         await user.save();
 
-        res.status(200).json({ 
+        res.status(200).json({
           profileImage: user.profileImage,
-          cloudinaryId: user.cloudinaryId
-         });
+          cloudinaryId: user.cloudinaryId,
+        });
       }
     } catch (error) {
       res.status(401);

@@ -10,8 +10,7 @@ import catchAsync from '../utils/catchAsync.js';
 export const getAllUsers = catchAsync(async (req, res, next) => {
   const users = await User.find();
 
-  if (!users)
-    return next(new ErrorResponse('Could not fetch users', 500));
+  if (!users) return next(new ErrorResponse('Could not fetch users', 500));
 
   // Fetch all memories separately for now, but ideally this would be a separate endpoint.
   const memories = await Memories.find();
@@ -24,7 +23,9 @@ export const getAllUsers = catchAsync(async (req, res, next) => {
 // @access: Admin and Private
 export const adminToggleUserIsAdmin = catchAsync(async (req, res, next) => {
   if (req.user.id === req.params.id) {
-    return next(new ErrorResponse('Admins cannot change their own status.', 400));
+    return next(
+      new ErrorResponse('Admins cannot change their own status.', 400),
+    );
   }
   const user = await User.findById(req.params.id);
 
@@ -39,7 +40,9 @@ export const adminToggleUserIsAdmin = catchAsync(async (req, res, next) => {
 // @access: Admin and Private
 export const adminToggleUserIsSuspended = catchAsync(async (req, res, next) => {
   if (req.user.id === req.params.id) {
-    return next(new ErrorResponse('Admins cannot change their own status.', 400));
+    return next(
+      new ErrorResponse('Admins cannot change their own status.', 400),
+    );
   }
   const user = await User.findById(req.params.id);
 
@@ -54,7 +57,9 @@ export const adminToggleUserIsSuspended = catchAsync(async (req, res, next) => {
 // @access: Admin and Private
 export const adminDeleteAllUserData = catchAsync(async (req, res, next) => {
   if (req.user.id === req.params.id) {
-    return next(new ErrorResponse('Admins cannot delete their own account.', 400));
+    return next(
+      new ErrorResponse('Admins cannot delete their own account.', 400),
+    );
   }
 
   const user = await User.findById(req.params.id);
@@ -74,7 +79,12 @@ export const adminDeleteAllUserData = catchAsync(async (req, res, next) => {
     await session.commitTransaction();
     session.endSession();
 
-    res.status(200).json({ success: true, data: 'User and all associated memories have been deleted.' });
+    res
+      .status(200)
+      .json({
+        success: true,
+        data: 'User and all associated memories have been deleted.',
+      });
   } catch (error) {
     await session.abortTransaction();
     session.endSession();

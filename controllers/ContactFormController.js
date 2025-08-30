@@ -4,22 +4,34 @@ import catchAsync from '../utils/catchAsync.js';
 
 // Basic HTML escaping function to prevent HTML injection
 const escapeHTML = (str) =>
-  str.replace(/[&<>'"]/g, (tag) => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    "'": '&#39;',
-    '"': '&quot;',
-  }[tag] || tag));
+  str.replace(
+    /[&<>'"]/g,
+    (tag) =>
+      ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;',
+      }[tag] || tag),
+  );
 
 // Basic email validation regex
-const emailRegEx = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
+const emailRegEx =
+  /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
 
 export const sendContactForm = catchAsync(async (req, res, next) => {
   const { name, email, message } = req.body;
 
   // Improved validation
-  if (!name || !email || !message || name.trim() === '' || email.trim() === '' || message.trim() === '') {
+  if (
+    !name ||
+    !email ||
+    !message ||
+    name.trim() === '' ||
+    email.trim() === '' ||
+    message.trim() === ''
+  ) {
     return next(new ErrorResponse('Please fill out all required fields', 400));
   }
 
