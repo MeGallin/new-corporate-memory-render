@@ -94,22 +94,31 @@ export const login = catchAsync(async (req, res, next) => {
 //Google Login
 export const googleLogin = catchAsync(async (req, res, next) => {
   const ipAddress = requestIp.getClientIp(req);
-  token = req.body.headers.Authorization.split(' ')[1];
-
-  if (!token?.sub)
-    return next(new ErrorResponse('Your login was un-successful', 500));
-
-  //Potential confirmation email here.
-
-  const googleToken = jwt.decode(token);
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return next(new ErrorResponse('No Google token provided', 400));
+  }
+  const token = authHeader.split(' ')[1];
+  if (!token) {
+    return next(new ErrorResponse('Google token missing', 400));
+  }
+  let googleToken;
+  try {
+    googleToken = jwt.decode(token);
+  } catch (err) {
+    return next(new ErrorResponse('Invalid Google token', 400));
+  }
+  if (!googleToken?.email) {
+    return next(new ErrorResponse('Google token does not contain email', 400));
+  }
   //check if email exist
-  const existingUser = await User.findOne({ email: googleToken?.email });
-  if (existingUser === null) {
+  const existingUser = await User.findOne({ email: googleToken.email });
+  if (!existingUser) {
     // Create user
     const user = await User.create({
-      name: googleToken?.name,
-      email: googleToken?.email,
-      password: googleToken?.email + process.env.JWT_SECRET,
+      name: googleToken.name || 'Google User',
+      email: googleToken.email,
+      password: googleToken.email + process.env.JWT_SECRET,
       isConfirmed: true,
       registeredWithGoogle: true,
       profileImage: '/assets/images/sample.jpg',
@@ -121,11 +130,10 @@ export const googleLogin = catchAsync(async (req, res, next) => {
     sendToken(user, 200, res);
   } else {
     //Login
-    const user = await User.findOne({ email: googleToken?.email });
-    user.loginCounter = user.loginCounter + 1;
-    user.ipAddress = ipAddress;
-    await user.save();
-    sendToken(user, 200, res);
+    existingUser.loginCounter = existingUser.loginCounter + 1;
+    existingUser.ipAddress = ipAddress;
+    await existingUser.save();
+    sendToken(existingUser, 200, res);
   }
 });
 
