@@ -1,0 +1,64 @@
+{
+  "info": {
+    "name": "Agent Chat API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Collection to test login and the agent chat endpoint. Set baseUrl and run Login to capture token."
+  },
+  "item": [
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "login"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"you@example.com\",\n  \"password\": \"yourPassword\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const json = pm.response.json();",
+              "if (json && json.token) { pm.collectionVariables.set('token', json.token); }",
+              "pm.test('Captured JWT token', function () { pm.expect(pm.collectionVariables.get('token')).to.be.a('string'); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Agent: Memories Chat",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/agent/memories/chat",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "agent", "memories", "chat"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"question\": \"What are my high-priority tasks due this week?\",\n  \"filters\": {\n    \"tags\": [\"project-x\"],\n    \"priority\": [\"high\"],\n    \"dueOnly\": true\n  }\n}"
+        }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "token", "value": "" }
+  ]
+}
+

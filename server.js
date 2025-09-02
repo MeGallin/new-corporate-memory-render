@@ -53,6 +53,7 @@ import ConfirmationLinkRoute from './routes/ConfirmationLinkRoute.js';
 import MemoryUploadImageRoutes from './routes/MemoryUploadImageRoutes.js';
 import UserProfileImageRoutes from './routes/UserProfileImageRoutes.js';
 import AdminRoute from './routes/AdminRoute.js';
+import AgentRoute from './routes/AgentRoute.js';
 
 app.use('/api/', PageHitsRoute);
 app.use('/api/', UserRoutes);
@@ -62,6 +63,7 @@ app.use('/api/', ConfirmationLinkRoute);
 app.use('/api/', MemoryUploadImageRoutes);
 app.use('/api/', UserProfileImageRoutes);
 app.use('/api/', AdminRoute);
+app.use('/api/', AgentRoute);
 
 // Basic route error handler (404 Not Found)
 app.all('*', (req, res, next) => {

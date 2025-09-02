@@ -24,6 +24,8 @@
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "@langchain/core": "^0.3.39",
+    "@langchain/openai": "^0.4.9",
     "cloudinary": "^1.33.0",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
