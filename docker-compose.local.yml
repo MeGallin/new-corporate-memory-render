@@ -1,0 +1,28 @@
+services:
+  mongo:
+    image: mongo:8.0
+    environment:
+      MONGO_INITDB_DATABASE: corporate-memory-local
+    healthcheck:
+      test: ['CMD', 'mongosh', '--quiet', '--eval', "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: 'no'
+
+  api:
+    build:
+      context: .
+    environment:
+      NODE_ENV: development
+      PORT: 5000
+      HOST: 0.0.0.0
+      MONGODB_URI: mongodb://mongo:27017/corporate-memory-local
+      ENABLE_REMINDER_CRON: 'false'
+      ENCRYPTION_ENABLED: 'false'
+    ports:
+      - '5000:5000'
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: 'no'

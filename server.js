@@ -5,6 +5,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import morgan from 'morgan';
+import mongoose from 'mongoose';
 import connectDB from './config/db.js';
 import ErrorResponse from './utils/errorResponse.js';
 import { scheduleReminderEmails } from './utils/cronJobs.js';
@@ -44,6 +45,17 @@ app.use(morgan('dev')); // 'combined' for production, 'dev' for development
 
 app.use(express.json());
 app.use(compression()); // Apply compression
+
+app.get('/health', (req, res) => {
+  const databaseConnected = mongoose.connection.readyState === 1;
+
+  res.status(databaseConnected ? 200 : 503).json({
+    status: databaseConnected ? 'ok' : 'degraded',
+    database: databaseConnected ? 'connected' : 'disconnected',
+    uptimeSeconds: Math.floor(process.uptime()),
+  });
+});
+
 //Routes
 import PageHitsRoute from './routes/PageHitsRoute.js';
 import UserRoutes from './routes/UserRoutes.js';
@@ -105,12 +117,67 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
+const HOST = process.env.HOST || '0.0.0.0';
+const reminderCronEnabled =
+  String(process.env.ENABLE_REMINDER_CRON || 'true').toLowerCase() === 'true';
 
-// Connect DB
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-    // Initialize scheduled jobs once the server is running
-    scheduleReminderEmails();
-  });
-});
+let server;
+let reminderTask;
+let shuttingDown = false;
+
+const shutdown = async (signal) => {
+  if (shuttingDown) return;
+  shuttingDown = true;
+
+  console.log(`${signal} received. Shutting down gracefully...`);
+
+  const forceShutdown = setTimeout(() => {
+    console.error('Graceful shutdown timed out. Forcing exit.');
+    process.exit(1);
+  }, 10000);
+  forceShutdown.unref();
+
+  try {
+    reminderTask?.stop();
+
+    if (server) {
+      await new Promise((resolve, reject) => {
+        server.close((error) => (error ? reject(error) : resolve()));
+      });
+    }
+
+    await mongoose.disconnect();
+    clearTimeout(forceShutdown);
+    console.log('Shutdown complete.');
+    process.exit(0);
+  } catch (error) {
+    clearTimeout(forceShutdown);
+    console.error(`Shutdown failed: ${error.message}`);
+    process.exit(1);
+  }
+};
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
+
+const startServer = async () => {
+  try {
+    await connectDB();
+
+    server = app.listen(PORT, HOST, () => {
+      console.log(`Server is running on ${HOST}:${PORT}`);
+
+      if (reminderCronEnabled) {
+        reminderTask = scheduleReminderEmails();
+        console.log('Reminder email cron is enabled.');
+      } else {
+        console.log('Reminder email cron is disabled.');
+      }
+    });
+  } catch (error) {
+    console.error(`Server startup failed: ${error.message}`);
+    process.exitCode = 1;
+  }
+};
+
+startServer();
