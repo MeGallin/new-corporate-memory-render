@@ -1,5 +1,4 @@
-import dotenv from 'dotenv';
-dotenv.config({ path: './config.env' });
+import { loadEnvironment } from './config/environment.js';
 import express from 'express';
 import compression from 'compression';
 import morgan from 'morgan';
@@ -11,6 +10,8 @@ import {
 } from './config/httpMiddleware.js';
 import ErrorResponse from './utils/errorResponse.js';
 import { scheduleReminderEmails } from './utils/cronJobs.js';
+
+loadEnvironment();
 
 const app = express();
 
