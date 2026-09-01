@@ -12,7 +12,9 @@ export const confirmEmailLink = catchAsync(async (req, res, next) => {
 
   try {
     // Verify the token synchronously. It will throw an error if invalid or expired.
-    decoded = jwt.verify(token, process.env.JWT_SECRET);
+    decoded = jwt.verify(token, process.env.JWT_SECRET, {
+      algorithms: ['HS256'],
+    });
   } catch (err) {
     return next(
       new ErrorResponse(

@@ -59,7 +59,9 @@ export const register = catchAsync(async (req, res, next) => {
 
 // Generate a secret token for the user
 const generateToken = (id, email) => {
-  return jwt.sign({ id, email }, process.env.JWT_SECRET);
+  return jwt.sign({ id, email }, process.env.JWT_SECRET, {
+    algorithm: 'HS256',
+  });
 };
 
 const sendToken = (user, statusCode, res) => {

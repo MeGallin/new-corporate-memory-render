@@ -6,19 +6,20 @@ Last updated: 1 September 2026
 
 ## Current position
 
-- Production API is running successfully as a Docker service on Render at commit `dcaac99`.
+- Production API is running successfully as a Docker service on Render at commit `4074274`.
 - Render health checks are configured at `/health` and currently pass with MongoDB connected.
 - Both Stage 2 security patches are deployed, including the admin-exposure, rate-limit, and focused route-test changes.
 - The production API now has the Google web client ID required for verified Google sign-in.
 - Render's native GitHub auto-deploy integration does not currently have repository access; production deployments are manual by user decision.
 - The API now uses Mongoose 8.24.4 and the upgrade is verified locally and in production.
-- The isolated Cloudinary 2 and Multer 2 upgrade is complete and verified locally; review, commit approval, and manual production deployment remain pending.
+- The API now uses Cloudinary 2.11.0 and Multer 2.3.0; the upgrade is verified locally and in production, including an authenticated image upload.
+- The isolated JSON Web Token 9 upgrade and HS256 verification hardening are complete locally; review, commit approval, and manual production deployment remain pending.
 - Atlas backup and access hardening remain deliberately deferred for their own controlled phase.
 - The client is still React 18 on Create React App 5; no client modernization has started.
 
 ### Next recommended action
 
-Review the isolated Cloudinary 2 and Multer 2 change, then commit and manually deploy it after explicit approval. After production upload smoke checks, continue with JSON Web Token and Express as separate controlled API dependency groups.
+Review the isolated JSON Web Token 9 change, then commit and manually deploy it after explicit approval. After production login and protected-route smoke checks, upgrade Express as its own separate dependency group.
 
 ## Stage 1 — Local Docker parity
 
@@ -55,8 +56,10 @@ Review the isolated Cloudinary 2 and Multer 2 change, then commit and manually d
 ## Stage 4 — API dependency modernization
 
 - [x] Upgrade Mongoose 6 to Mongoose 8 and resolve deprecated connection and middleware behavior.
-- [ ] Upgrade Cloudinary and Multer in an isolated upload-focused change set to remove the legacy `vm2` path and Multer 1.x warnings. Implementation and local verification are complete; production deployment is pending.
-- [ ] Upgrade JSON Web Token, Express, and the remaining dependencies in controlled groups.
+- [x] Upgrade Cloudinary and Multer in an isolated upload-focused change set to remove the legacy `vm2` path and Multer 1.x warnings.
+- [ ] Upgrade JSON Web Token 8 to 9 and pin application token verification to HS256. Implementation and local verification are complete; production deployment is pending.
+- [ ] Upgrade Express in its own controlled change set.
+- [ ] Upgrade the remaining API dependencies in controlled groups.
 - [ ] Re-run security audits and resolve remaining reachable vulnerabilities.
 - [ ] Move scheduled jobs out of the web process before adding more API instances.
 - [ ] Avoid re-embedding every memory on every Agent Chat request.

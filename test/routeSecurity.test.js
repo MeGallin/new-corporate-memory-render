@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import User from '../models/UserModel.js';
 import Memories from '../models/MemoriesModel.js';
 import AdminRoutes from '../routes/AdminRoute.js';
+import ConfirmationLinkRoute from '../routes/ConfirmationLinkRoute.js';
 import MemoryUploadImageRoutes from '../routes/MemoryUploadImageRoutes.js';
 import UserRoutes from '../routes/UserRoutes.js';
 
@@ -38,6 +39,27 @@ const restoreEnvironmentVariable = (name, value) => {
   }
 };
 
+test('user session tokens use HS256 and include the configured expiry', () => {
+  const originalJwtSecret = process.env.JWT_SECRET;
+  const originalJwtExpire = process.env.JWT_EXPIRE;
+  process.env.JWT_SECRET = 'route-test-secret';
+  process.env.JWT_EXPIRE = '1h';
+
+  try {
+    const user = new User();
+    const token = user.getSignedToken();
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, {
+      algorithms: ['HS256'],
+    });
+
+    assert.equal(decoded.id, String(user._id));
+    assert.ok(decoded.exp > decoded.iat);
+  } finally {
+    restoreEnvironmentVariable('JWT_SECRET', originalJwtSecret);
+    restoreEnvironmentVariable('JWT_EXPIRE', originalJwtExpire);
+  }
+});
+
 test('protected admin and upload routes reject missing authentication', async () => {
   const adminServer = await createTestServer(AdminRoutes);
   const uploadServer = await createTestServer(MemoryUploadImageRoutes);
@@ -54,6 +76,67 @@ test('protected admin and upload routes reject missing authentication', async ()
   } finally {
     await adminServer.close();
     await uploadServer.close();
+  }
+});
+
+test('protected routes reject invalid, expired, and non-HS256 tokens', async () => {
+  const originalJwtSecret = process.env.JWT_SECRET;
+  const originalFindById = User.findById;
+  process.env.JWT_SECRET = 'route-test-secret';
+  User.findById = () => {
+    throw new Error('Invalid tokens must be rejected before user lookup');
+  };
+
+  const tokens = [
+    'not-a-valid-token',
+    jwt.sign({ id: 'admin-user' }, process.env.JWT_SECRET, {
+      algorithm: 'HS256',
+      expiresIn: -1,
+    }),
+    jwt.sign({ id: 'admin-user' }, process.env.JWT_SECRET, {
+      algorithm: 'HS384',
+    }),
+  ];
+
+  const server = await createTestServer(AdminRoutes);
+  try {
+    for (const token of tokens) {
+      const response = await fetch(`${server.baseUrl}/admin/users`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      assert.equal(response.status, 401);
+      assert.match((await response.json()).error, /Token has failed/);
+    }
+  } finally {
+    await server.close();
+    restoreEnvironmentVariable('JWT_SECRET', originalJwtSecret);
+    User.findById = originalFindById;
+  }
+});
+
+test('email confirmation rejects tokens that are not HS256', async () => {
+  const originalJwtSecret = process.env.JWT_SECRET;
+  const originalFindById = User.findById;
+  process.env.JWT_SECRET = 'route-test-secret';
+  User.findById = () => {
+    throw new Error('Rejected confirmation tokens must not query users');
+  };
+
+  const token = jwt.sign({ id: 'user-id' }, process.env.JWT_SECRET, {
+    algorithm: 'HS384',
+  });
+  const server = await createTestServer(ConfirmationLinkRoute);
+
+  try {
+    const response = await fetch(
+      `${server.baseUrl}/confirm-email/${token}`,
+    );
+    assert.equal(response.status, 400);
+    assert.match((await response.json()).error, /invalid or has expired/);
+  } finally {
+    await server.close();
+    restoreEnvironmentVariable('JWT_SECRET', originalJwtSecret);
+    User.findById = originalFindById;
   }
 });
 

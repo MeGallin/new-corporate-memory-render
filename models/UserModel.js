@@ -89,6 +89,7 @@ UserSchema.methods.matchPasswords = async function (password) {
 // Method: Generate a signed JWT for authentication
 UserSchema.methods.getSignedToken = function () {
   return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
+    algorithm: 'HS256',
     expiresIn: process.env.JWT_EXPIRE,
   });
 };
