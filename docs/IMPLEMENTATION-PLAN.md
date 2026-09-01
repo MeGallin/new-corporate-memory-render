@@ -6,7 +6,7 @@ Last updated: 1 September 2026
 
 ## Current position
 
-- Production API is running successfully as a Docker service on Render at commit `22d7d09`.
+- Production API is running successfully as a Docker service on Render at commit `288ef12`.
 - Render health checks are configured at `/health` and currently pass with MongoDB connected.
 - Both Stage 2 security patches are deployed, including the admin-exposure, rate-limit, and focused route-test changes.
 - The production API now has the Google web client ID required for verified Google sign-in.
@@ -20,14 +20,15 @@ Last updated: 1 September 2026
 - Render has `OPENAI_MODEL=gpt-5.6-luna` and `OPENAI_EMBEDDING_MODEL=text-embedding-3-small`; the former misnamed `EMBEDDING_MODEL` key has been removed.
 - The Agent Chat smoke request completed and returned a coherent answer from the user's memories. Follow-up client QA is deferred to Stage 5 by user decision because the component removes inline citation markers and does not render the returned citation metadata; the same page also displayed a zero-memory list while the agent found five memories.
 - The Morgan 1.12.0, node-cron 4.6.0, and Moment 2.30.1 runtime group is deployed at `22d7d09`. Render verified container startup, MongoDB connectivity, Morgan health-request logging, and successful registration of the 08:00 Europe/London reminder task without manually firing it.
-- Helmet 8.3.0 and CORS 2.8.6 are implemented and reviewed locally. Focused tests cover the production and development allowlists, credentialed preflight, unknown origins, non-browser requests, and Helmet's expected API response headers; commit approval and manual deployment remain pending.
+- Helmet 8.3.0 and CORS 2.8.6 are deployed at `288ef12`. Production verification confirmed `/health`, the allowed-origin and credential headers, omission of CORS permission for an unknown origin, Helmet's CSP and one-year HSTS header, and removal of `X-Powered-By`.
+- bcryptjs 3.0.3 is implemented and reviewed locally. Focused tests confirm existing `$2a$` hashes remain valid, new `$2b$` hashes retain 12 rounds, and new passwords cannot exceed bcrypt's 72-byte input limit; commit approval and manual deployment remain pending.
 - The current production-install audit reports zero known vulnerabilities after refreshing MongoDB's compatible optional Socks dependency to 2.8.9.
 - Atlas backup and access hardening remain deliberately deferred for their own controlled phase.
 - The client is still React 18 on Create React App 5; no client modernization has started.
 
 ### Next recommended action
 
-Review and, after explicit approval, commit the Helmet/CORS middleware group. Manually deploy it on Render, verify `/health`, confirm the expected security and production-origin headers, and perform an ordinary client login check. Keep bcryptjs, dotenv, Google Auth Library, Mongoose 9, client modernization, and Atlas work separate.
+Review and, after explicit approval, commit the bcryptjs 3 compatibility group. Manually deploy it on Render, verify `/health`, and perform an ordinary login with an existing password account to confirm production legacy-hash compatibility. Keep dotenv, Google Auth Library, Mongoose 9, client modernization, and Atlas work separate.
 
 ## Stage 1 — Local Docker parity
 
@@ -69,7 +70,7 @@ Review and, after explicit approval, commit the Helmet/CORS middleware group. Ma
 - [x] Upgrade Express in its own controlled change set.
 - [x] Upgrade Nodemailer and harden the SMTP transport.
 - [x] Upgrade LangChain/OpenAI and move Agent Chat to the cost-sensitive GPT-5.6 Luna model; deployed at `1cdb0be` and verified with an authenticated production request.
-- [ ] Upgrade the remaining API dependencies in controlled groups. Morgan 1.12.0, node-cron 4.6.0, Moment 2.30.1, and the compatible Socks 2.8.9 lock refresh are complete in production at `22d7d09`. Helmet 8.3.0 and CORS 2.8.6 are complete locally and pending deployment; bcryptjs, dotenv, Google Auth Library, and Mongoose 9 remain separate candidates.
+- [ ] Upgrade the remaining API dependencies in controlled groups. Morgan 1.12.0, node-cron 4.6.0, Moment 2.30.1, Socks 2.8.9, Helmet 8.3.0, and CORS 2.8.6 are complete in production at `288ef12`. bcryptjs 3.0.3 is complete locally and pending deployment; dotenv, Google Auth Library, and Mongoose 9 remain separate candidates.
 - [x] Re-run the production-only security audit and resolve the currently reported reachable vulnerabilities; the local audit now reports zero findings.
 - [ ] Move scheduled jobs out of the web process before adding more API instances.
 - [ ] Avoid re-embedding every memory on every Agent Chat request.

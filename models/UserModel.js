@@ -24,6 +24,10 @@ const UserSchema = mongoose.Schema(
       type: String,
       required: [true, 'Password is required'],
       minlength: [6, 'Password must be at least 6 characters long'],
+      validate: {
+        validator: (value) => !bcrypt.truncates(value),
+        message: 'Password must be 72 bytes or fewer',
+      },
       select: false, // Do not return password field by default
     },
     isAdmin: {
