@@ -6,7 +6,7 @@ Last updated: 1 September 2026
 
 ## Current position
 
-- Production API is running successfully as a Docker service on Render at commit `57a4b42`.
+- Production API is running successfully as a Docker service on Render at commit `1cdb0be`.
 - Render health checks are configured at `/health` and currently pass with MongoDB connected.
 - Both Stage 2 security patches are deployed, including the admin-exposure, rate-limit, and focused route-test changes.
 - The production API now has the Google web client ID required for verified Google sign-in.
@@ -16,14 +16,17 @@ Last updated: 1 September 2026
 - The API now uses JSON Web Token 9.0.3 with HS256-only application token verification; the upgrade is verified locally and in production, including a manual login.
 - The API now uses Express 5.2.1; the upgrade is verified locally and in production, including health, login, and missing-route checks.
 - The API now uses Nodemailer 9.1.0 with hardened SMTP transport; the upgrade is verified locally and through an application email submission against the deployed backend.
-- The LangChain/OpenAI integration upgrade and GPT-5.6 Luna default are complete locally; review, commit approval, manual deployment, and one authenticated Agent Chat smoke check remain pending.
-- The local non-secret model settings now use `OPENAI_MODEL=gpt-5.6-luna` and the correctly named `OPENAI_EMBEDDING_MODEL`; apply the same names in Render during the deployment checkpoint so an older environment override cannot retain GPT-4o mini.
+- The LangChain/OpenAI integration upgrade and GPT-5.6 Luna default are deployed and verified through an authenticated Agent Chat request against production.
+- Render has `OPENAI_MODEL=gpt-5.6-luna` and `OPENAI_EMBEDDING_MODEL=text-embedding-3-small`; the former misnamed `EMBEDDING_MODEL` key has been removed.
+- The Agent Chat smoke request completed and returned a coherent answer from the user's memories. Follow-up client QA is deferred to Stage 5 by user decision because the component removes inline citation markers and does not render the returned citation metadata; the same page also displayed a zero-memory list while the agent found five memories.
+- The Morgan 1.12.0, node-cron 4.6.0, and Moment 2.30.1 runtime group is implemented and reviewed locally. The daily 08:00 Europe/London schedule, lifecycle handling, and Express request logging are covered by focused offline tests; commit approval and manual deployment remain pending.
+- The current local production-install audit reports zero known vulnerabilities after refreshing MongoDB's compatible optional Socks dependency to 2.8.9.
 - Atlas backup and access hardening remain deliberately deferred for their own controlled phase.
 - The client is still React 18 on Create React App 5; no client modernization has started.
 
 ### Next recommended action
 
-Review the isolated Agent Chat/LangChain change set, then commit and manually deploy it after explicit approval. Run one authenticated Agent Chat question to verify model availability, answer formatting, and citations before proceeding to logging and scheduling dependencies.
+Review and, after explicit approval, commit the logging/scheduling dependency group. Manually deploy it on Render and verify container startup, `/health`, and the `Reminder email cron is enabled` startup log without manually triggering reminder emails.
 
 ## Stage 1 — Local Docker parity
 
@@ -64,14 +67,15 @@ Review the isolated Agent Chat/LangChain change set, then commit and manually de
 - [x] Upgrade JSON Web Token 8 to 9 and pin application token verification to HS256.
 - [x] Upgrade Express in its own controlled change set.
 - [x] Upgrade Nodemailer and harden the SMTP transport.
-- [ ] Upgrade LangChain/OpenAI and move Agent Chat to the cost-sensitive GPT-5.6 Luna model. Implementation and offline verification are complete; production deployment is pending.
-- [ ] Upgrade the remaining API dependencies in controlled groups.
-- [ ] Re-run security audits and resolve remaining reachable vulnerabilities.
+- [x] Upgrade LangChain/OpenAI and move Agent Chat to the cost-sensitive GPT-5.6 Luna model; deployed at `1cdb0be` and verified with an authenticated production request.
+- [ ] Upgrade the remaining API dependencies in controlled groups. Morgan 1.12.0, node-cron 4.6.0, Moment 2.30.1, and the compatible Socks 2.8.9 lock refresh are complete locally; the remaining direct modernization candidates are bcryptjs, CORS, dotenv, Google Auth Library, and Helmet.
+- [x] Re-run the production-only security audit and resolve the currently reported reachable vulnerabilities; the local audit now reports zero findings.
 - [ ] Move scheduled jobs out of the web process before adding more API instances.
 - [ ] Avoid re-embedding every memory on every Agent Chat request.
 
 ## Stage 5 — Client modernization
 
+- [ ] Render Agent Chat citation metadata instead of discarding inline citation markers, and investigate the observed memory-list/count mismatch.
 - [ ] Repair or replace the current Jest configuration so tests run reliably.
 - [ ] Migrate Create React App 5 to Vite.
 - [ ] Upgrade React 18 to React 19 and update incompatible dependencies.
