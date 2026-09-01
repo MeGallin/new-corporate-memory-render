@@ -1,12 +1,14 @@
 import dotenv from 'dotenv';
 dotenv.config({ path: './config.env' });
 import express from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
 import compression from 'compression';
 import morgan from 'morgan';
 import mongoose from 'mongoose';
 import connectDB from './config/db.js';
+import {
+  createCorsMiddleware,
+  createSecurityHeadersMiddleware,
+} from './config/httpMiddleware.js';
 import ErrorResponse from './utils/errorResponse.js';
 import { scheduleReminderEmails } from './utils/cronJobs.js';
 
@@ -15,33 +17,11 @@ const app = express();
 // Render terminates HTTPS and forwards requests through one trusted proxy.
 app.set('trust proxy', 1);
 
-// CORS Configuration
-const allowedOrigins =
-  process.env.NODE_ENV === 'production'
-    ? [
-        'https://yourcorporatememory.com',
-        'https://new-corporate-memory-api.onrender.com',
-      ] // Added actual production domains
-    : ['http://localhost:3000', 'http://localhost:5000']; // Development origins
-
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.indexOf(origin) === -1) {
-        const msg =
-          'The CORS policy for this site does not allow access from the specified Origin.';
-        return callback(new Error(msg), false);
-      }
-      return callback(null, true);
-    },
-    credentials: true, // Allow cookies to be sent
-  }),
-);
+// Allow the known client origins and requests without an Origin header.
+app.use(createCorsMiddleware());
 
 // Security Headers
-app.use(helmet());
+app.use(createSecurityHeadersMiddleware());
 
 // Request Logging
 app.use(morgan('dev')); // 'combined' for production, 'dev' for development
