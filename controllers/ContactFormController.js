@@ -63,7 +63,7 @@ export const sendContactForm = catchAsync(async (req, res, next) => {
 </div>`;
 
   // Send Email
-  sendEmail({
+  await sendEmail({
     from: process.env.MAILER_FROM,
     to: email, // The 'to' address is not part of the HTML body, so it doesn't need escaping here
     subject: 'Your Corporate Memory Contact Form',

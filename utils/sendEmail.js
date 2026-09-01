@@ -1,34 +1,35 @@
 import nodemailer from 'nodemailer';
 
-const sendEmail = (options) => {
-  let transporter = nodemailer.createTransport({
+export const createMailerTransport = () =>
+  nodemailer.createTransport({
     host: process.env.MAILER_HOST,
-    port: 587, //Default port number 587
-    secure: false, // true for 465, false for other ports
+    port: 587,
+    secure: false,
+    requireTLS: true,
     auth: {
       user: process.env.MAILER_USER,
       pass: process.env.MAILER_PW,
     },
     tls: {
-      rejectUnauthorized: false,
+      minVersion: 'TLSv1.2',
     },
   });
 
-  const mailOptions = {
-    from: process.env.MAILER_FROM,
-    to: options.to, //Change this to options.to when you go live
-    bcc: process.env.MAILER_BCC,
-    subject: options.subject,
-    html: options.html,
-  };
+export const buildMailOptions = (options) => ({
+  from: process.env.MAILER_FROM,
+  to: options.to,
+  bcc: process.env.MAILER_BCC,
+  subject: options.subject,
+  html: options.html,
+  disableFileAccess: true,
+  disableUrlAccess: true,
+});
 
-  transporter.sendMail(mailOptions, function (err, info) {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log(info);
-    }
-  });
+const sendEmail = async (options) => {
+  const transporter = createMailerTransport();
+  const mailOptions = buildMailOptions(options);
+
+  return transporter.sendMail(mailOptions);
 };
 
 export default sendEmail;
