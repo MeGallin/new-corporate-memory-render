@@ -6,17 +6,18 @@ Last updated: 1 September 2026
 
 ## Current position
 
-- Production API is running successfully as a Docker service on Render at commit `0fd8079`.
+- Production API is running successfully as a Docker service on Render at commit `81f9e7a`.
 - Render health checks are configured at `/health` and currently pass with MongoDB connected.
-- The first critical authentication and upload-security patch is deployed.
-- The remaining Stage 2 admin-exposure, rate-limit, and route-test patch is complete and reviewed locally; it is awaiting commit approval and is not deployed.
+- Both Stage 2 security patches are deployed, including the admin-exposure, rate-limit, and focused route-test changes.
 - The production API now has the Google web client ID required for verified Google sign-in.
+- Render's native GitHub auto-deploy integration does not currently have repository access; production deployments are manual by user decision.
+- The isolated Mongoose 8 upgrade is complete and verified locally; it is awaiting review, commit approval, and a manual Render deployment.
 - Atlas backup and access hardening remain deliberately deferred for their own controlled phase.
 - The client is still React 18 on Create React App 5; no client modernization has started.
 
 ### Next recommended action
 
-After explicit approval, commit and deploy the reviewed remaining Stage 2 patch. After its production smoke check, start Stage 4 with an isolated Mongoose 6 to Mongoose 8 upgrade, followed by a separate Cloudinary/Multer upgrade. Do not mix those upgrades with Atlas configuration changes or the client migration.
+Review the isolated Mongoose 8 change, then commit and manually deploy it after explicit approval. Once its production health and API smoke checks pass, begin the separate Cloudinary/Multer upgrade. Do not combine either change with Atlas configuration work or the client migration.
 
 ## Stage 1 — Local Docker parity
 
@@ -52,7 +53,7 @@ After explicit approval, commit and deploy the reviewed remaining Stage 2 patch.
 
 ## Stage 4 — API dependency modernization
 
-- [ ] Upgrade Mongoose 6 to Mongoose 8 and resolve deprecated connection and middleware behavior.
+- [ ] Upgrade Mongoose 6 to Mongoose 8 and resolve deprecated connection and middleware behavior. Implementation and local verification are complete; production deployment is pending.
 - [ ] Upgrade Cloudinary and Multer in an isolated upload-focused change set to remove the legacy `vm2` path and Multer 1.x warnings.
 - [ ] Upgrade JSON Web Token, Express, and the remaining dependencies in controlled groups.
 - [ ] Re-run security audits and resolve remaining reachable vulnerabilities.
