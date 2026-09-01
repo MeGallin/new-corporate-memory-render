@@ -8,12 +8,17 @@ import catchAsync from '../utils/catchAsync.js';
 // @route: GET /api/admin/users
 // @access: Admin and Private
 export const getAllUsers = catchAsync(async (req, res, next) => {
-  const users = await User.find();
+  const users = await User.find()
+    .select(
+      'name email isAdmin isConfirmed isSuspended profileImage ipAddress loginCounter registeredWithGoogle createdAt updatedAt',
+    )
+    .lean();
 
   if (!users) return next(new ErrorResponse('Could not fetch users', 500));
 
-  // Fetch all memories separately for now, but ideally this would be a separate endpoint.
-  const memories = await Memories.find();
+  // The current client only needs ownership references to calculate per-user counts.
+  // Do not load or return encrypted/decrypted memory content from this endpoint.
+  const memories = await Memories.find().select('_id user').lean();
 
   res.status(200).json({ success: true, users, memories });
 });

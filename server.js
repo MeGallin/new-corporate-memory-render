@@ -12,6 +12,9 @@ import { scheduleReminderEmails } from './utils/cronJobs.js';
 
 const app = express();
 
+// Render terminates HTTPS and forwards requests through one trusted proxy.
+app.set('trust proxy', 1);
+
 // CORS Configuration
 const allowedOrigins =
   process.env.NODE_ENV === 'production'

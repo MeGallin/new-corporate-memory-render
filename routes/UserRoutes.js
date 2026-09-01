@@ -10,11 +10,15 @@ import {
   deleteUserProfileImage,
 } from '../controllers/UserController.js';
 import { protect } from '../middleWare/authMiddleWare.js';
+import {
+  accountActionRateLimiter,
+  loginRateLimiter,
+} from '../middleWare/rateLimitMiddleWare.js';
 const router = express.Router();
 
-router.route('/register').post(register);
-router.route('/login').post(login);
-router.route('/google-login').post(googleLogin);
+router.route('/register').post(accountActionRateLimiter, register);
+router.route('/login').post(loginRateLimiter, login);
+router.route('/google-login').post(loginRateLimiter, googleLogin);
 
 // Consolidated user details routes
 router
@@ -25,7 +29,9 @@ router
 // Consolidated user profile image routes
 router.route('/user-profile-image').delete(protect, deleteUserProfileImage); // Route updated from /user-profile-image-delete/:id
 
-router.route('/forgot-password').post(forgotPassword);
-router.route('/resetpassword/:token').put(resetPassword);
+router.route('/forgot-password').post(accountActionRateLimiter, forgotPassword);
+router
+  .route('/resetpassword/:token')
+  .put(accountActionRateLimiter, resetPassword);
 
 export default router;
