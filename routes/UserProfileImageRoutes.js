@@ -1,47 +1,31 @@
 import express from 'express';
 import User from '../models/UserModel.js';
-import multer from 'multer';
-import path from 'path';
 import cloudinary from 'cloudinary';
 import { protect } from '../middleWare/authMiddleWare.js';
+import {
+  imageUpload,
+  removeTemporaryUpload,
+} from '../utils/imageUpload.js';
 
 const router = express.Router();
-
-const storage = multer.diskStorage({
-  filename(req, file, cb) {
-    cb(
-      null,
-      `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`,
-    );
-  },
-});
-
-function checkFileType(file, cb) {
-  const filetypes = /jpg|jpeg|png/;
-  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = filetypes.test(file.mimetype);
-
-  if (extname && mimetype) {
-    return cb(null, true);
-  } else {
-    cb('Images only!');
-  }
-}
-
-const upload = multer({
-  storage,
-  fileFilter: function (req, file, cb) {
-    checkFileType(file, cb);
-  },
-});
 
 // NB!!! This name 'userImage' must match the name attribute in the upload form.
 router.post(
   '/user-profile-upload-image',
   protect,
-  upload.single('userProfileImage'),
+  imageUpload.single('userProfileImage'),
   async (req, res, next) => {
     try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'Please select an image' });
+      }
+
+      const user = await User.findById(req.user._id);
+
+      if (!user) {
+        return res.status(404).json({ error: 'No USER found' });
+      }
+
       cloudinary.config({
         cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
         api_key: process.env.CLOUDINARY_API_KEY,
@@ -49,26 +33,18 @@ router.post(
       });
       const result = await cloudinary.uploader.upload(`${req.file.path}`);
 
-      // Associate profile image with user profile
-      const user = await User.findById(req.headers.userid);
+      user.profileImage = result.secure_url;
+      user.cloudinaryId = result.public_id;
+      await user.save();
 
-      if (!user) {
-        res.status(401);
-        throw new Error('No USER found');
-      } else {
-        // Save the USER
-        user.profileImage = result.secure_url;
-        user.cloudinaryId = result.public_id;
-        await user.save();
-
-        res.status(200).json({
-          profileImage: user.profileImage,
-          cloudinaryId: user.cloudinaryId,
-        });
-      }
+      return res.status(200).json({
+        profileImage: user.profileImage,
+        cloudinaryId: user.cloudinaryId,
+      });
     } catch (error) {
-      res.status(401);
-      throw new Error(`Image not uploaded. ${error}`);
+      return next(error);
+    } finally {
+      await removeTemporaryUpload(req.file);
     }
   },
 );

@@ -8,7 +8,8 @@
     "start": "node server.js",
     "server": "nodemon server.js",
     "debug": "ndb server",
-    "smoke": "node scripts/smoke-test.mjs"
+    "smoke": "node scripts/smoke-test.mjs",
+    "test": "node --test test/authSecurity.test.js"
   },
   "repository": {
     "type": "git",
@@ -31,6 +32,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
+    "google-auth-library": "^10.9.1",
     "jsonwebtoken": "^8.5.1",
     "moment": "^2.29.4",
     "mongoose": "^6.8.0",

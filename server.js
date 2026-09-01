@@ -110,6 +110,10 @@ app.use((err, req, res, next) => {
     error = new ErrorResponse(message, 400);
   }
 
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    error = new ErrorResponse('Image must be 5 MB or smaller', 413);
+  }
+
   res.status(error.statusCode || 500).json({
     success: false,
     error: error.message || 'Server Error',

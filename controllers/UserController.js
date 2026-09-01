@@ -6,6 +6,13 @@ import jwt from 'jsonwebtoken';
 import requestIp from 'request-ip';
 import cloudinary from 'cloudinary';
 import catchAsync from '../utils/catchAsync.js';
+import { OAuth2Client } from 'google-auth-library';
+import {
+  extractBearerToken,
+  getVerifiedGoogleProfile,
+} from '../utils/authSecurity.js';
+
+const googleClient = new OAuth2Client();
 
 // @description: Register new user
 // @route: POST /api/register
@@ -94,31 +101,34 @@ export const login = catchAsync(async (req, res, next) => {
 //Google Login
 export const googleLogin = catchAsync(async (req, res, next) => {
   const ipAddress = requestIp.getClientIp(req);
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  const token = extractBearerToken(req.headers.authorization);
+  if (!token) {
     return next(new ErrorResponse('No Google token provided', 400));
   }
-  const token = authHeader.split(' ')[1];
-  if (!token) {
-    return next(new ErrorResponse('Google token missing', 400));
+
+  if (!process.env.GOOGLE_CLIENT_ID) {
+    return next(new ErrorResponse('Google login is not configured', 503));
   }
-  let googleToken;
+
+  let googleProfile;
   try {
-    googleToken = jwt.decode(token);
-  } catch (err) {
-    return next(new ErrorResponse('Invalid Google token', 400));
+    const ticket = await googleClient.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    googleProfile = getVerifiedGoogleProfile(ticket.getPayload());
+  } catch (error) {
+    return next(new ErrorResponse('Invalid Google token', 401));
   }
-  if (!googleToken?.email) {
-    return next(new ErrorResponse('Google token does not contain email', 400));
-  }
+
   //check if email exist
-  const existingUser = await User.findOne({ email: googleToken.email });
+  const existingUser = await User.findOne({ email: googleProfile.email });
   if (!existingUser) {
     // Create user
     const user = await User.create({
-      name: googleToken.name || 'Google User',
-      email: googleToken.email,
-      password: googleToken.email + process.env.JWT_SECRET,
+      name: googleProfile.name,
+      email: googleProfile.email,
+      password: crypto.randomBytes(32).toString('hex'),
       isConfirmed: true,
       registeredWithGoogle: true,
       profileImage: '/assets/images/sample.jpg',
