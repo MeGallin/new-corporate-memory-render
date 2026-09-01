@@ -9,7 +9,7 @@ import catchAsync from '../utils/catchAsync.js';
 import { OAuth2Client } from 'google-auth-library';
 import {
   extractBearerToken,
-  getVerifiedGoogleProfile,
+  verifyGoogleIdToken,
 } from '../utils/authSecurity.js';
 
 const googleClient = new OAuth2Client();
@@ -114,11 +114,11 @@ export const googleLogin = catchAsync(async (req, res, next) => {
 
   let googleProfile;
   try {
-    const ticket = await googleClient.verifyIdToken({
+    googleProfile = await verifyGoogleIdToken({
+      client: googleClient,
       idToken: token,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
-    googleProfile = getVerifiedGoogleProfile(ticket.getPayload());
   } catch (error) {
     return next(new ErrorResponse('Invalid Google token', 401));
   }

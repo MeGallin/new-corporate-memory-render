@@ -6,7 +6,7 @@ Last updated: 1 September 2026
 
 ## Current position
 
-- Production API is running successfully as a Docker service on Render at commit `2273bfd`.
+- Production API is running successfully as a Docker service on Render at commit `fb17c0f`.
 - Render health checks are configured at `/health` and currently pass with MongoDB connected.
 - Both Stage 2 security patches are deployed, including the admin-exposure, rate-limit, and focused route-test changes.
 - The production API now has the Google web client ID required for verified Google sign-in.
@@ -22,14 +22,15 @@ Last updated: 1 September 2026
 - The Morgan 1.12.0, node-cron 4.6.0, and Moment 2.30.1 runtime group is deployed at `22d7d09`. Render verified container startup, MongoDB connectivity, Morgan health-request logging, and successful registration of the 08:00 Europe/London reminder task without manually firing it.
 - Helmet 8.3.0 and CORS 2.8.6 are deployed at `288ef12`. Production verification confirmed `/health`, the allowed-origin and credential headers, omission of CORS permission for an unknown origin, Helmet's CSP and one-year HSTS header, and removal of `X-Powered-By`.
 - bcryptjs 3.0.3 is deployed at `2273bfd`. The container and `/health` endpoint are healthy, and focused tests confirm existing `$2a$` hashes remain valid, new `$2b$` hashes retain 12 rounds, and new passwords cannot exceed bcrypt's 72-byte input limit. A credentialed production login was not independently performed for this dependency phase.
-- dotenv 17.4.2 is implemented and reviewed locally. Startup now uses one quiet, non-overriding environment loader, preserving Render-provided values while removing duplicate initialization; commit approval and manual deployment remain pending.
+- dotenv 17.4.2 is deployed at `fb17c0f`. Render startup was clean, contained no dotenv injection messages, connected to MongoDB normally, and passed internal and public health checks.
+- Google Auth Library 11.0.2 is implemented and reviewed locally. The existing verified ID-token flow still passes the bearer token and configured audience to `OAuth2Client.verifyIdToken()` and continues to require a verified email; commit approval and manual deployment remain pending.
 - The current production-install audit reports zero known vulnerabilities after refreshing MongoDB's compatible optional Socks dependency to 2.8.9.
 - Atlas backup and access hardening remain deliberately deferred for their own controlled phase.
 - The client is still React 18 on Create React App 5; no client modernization has started.
 
 ### Next recommended action
 
-Review and, after explicit approval, commit the dotenv 17 environment-loading group. Manually deploy it on Render, confirm normal startup without dotenv injection messages, and verify `/health`. Keep Google Auth Library, Mongoose 9, client modernization, and Atlas work separate.
+Review and, after explicit approval, commit the Google Auth Library 11 compatibility group. Manually deploy it on Render, verify `/health`, reject a deliberately invalid Google token, and complete one ordinary Google sign-in through the client. Keep Mongoose 9, client modernization, and Atlas work separate.
 
 ## Stage 1 — Local Docker parity
 
@@ -71,7 +72,7 @@ Review and, after explicit approval, commit the dotenv 17 environment-loading gr
 - [x] Upgrade Express in its own controlled change set.
 - [x] Upgrade Nodemailer and harden the SMTP transport.
 - [x] Upgrade LangChain/OpenAI and move Agent Chat to the cost-sensitive GPT-5.6 Luna model; deployed at `1cdb0be` and verified with an authenticated production request.
-- [ ] Upgrade the remaining API dependencies in controlled groups. Morgan 1.12.0, node-cron 4.6.0, Moment 2.30.1, Socks 2.8.9, Helmet 8.3.0, and CORS 2.8.6 are complete in production at `288ef12`; bcryptjs 3.0.3 is complete in production at `2273bfd`. dotenv 17.4.2 is complete locally and pending deployment; Google Auth Library and Mongoose 9 remain separate candidates.
+- [ ] Upgrade the remaining API dependencies in controlled groups. Morgan 1.12.0, node-cron 4.6.0, Moment 2.30.1, Socks 2.8.9, Helmet 8.3.0, and CORS 2.8.6 are complete in production at `288ef12`; bcryptjs 3.0.3 is complete in production at `2273bfd`; dotenv 17.4.2 is complete in production at `fb17c0f`. Google Auth Library 11.0.2 is complete locally and pending deployment; Mongoose 9 remains a separate candidate.
 - [x] Re-run the production-only security audit and resolve the currently reported reachable vulnerabilities; the local audit now reports zero findings.
 - [ ] Move scheduled jobs out of the web process before adding more API instances.
 - [ ] Avoid re-embedding every memory on every Agent Chat request.

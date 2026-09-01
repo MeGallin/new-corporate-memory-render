@@ -1,9 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { OAuth2Client } from 'google-auth-library';
 import {
   extractBearerToken,
   getVerifiedGoogleProfile,
   isResourceOwner,
+  verifyGoogleIdToken,
 } from '../utils/authSecurity.js';
 
 test('extractBearerToken accepts one well-formed bearer token', () => {
@@ -38,4 +40,39 @@ test('getVerifiedGoogleProfile requires a verified identity', () => {
       email_verified: false,
     }),
   );
+});
+
+test('Google Auth Library 11 preserves the verified ID token contract', async () => {
+  const libraryClient = new OAuth2Client();
+  const verificationCalls = [];
+  const client = {
+    verifyIdToken: async (options) => {
+      verificationCalls.push(options);
+
+      return {
+        getPayload: () => ({
+          sub: 'google-user-id',
+          email: 'Person@Example.com',
+          email_verified: true,
+          name: 'Person',
+        }),
+      };
+    },
+  };
+
+  assert.equal(typeof libraryClient.verifyIdToken, 'function');
+  assert.deepEqual(
+    await verifyGoogleIdToken({
+      client,
+      idToken: 'signed-google-id-token',
+      audience: 'configured-google-client-id',
+    }),
+    { email: 'person@example.com', name: 'Person' },
+  );
+  assert.deepEqual(verificationCalls, [
+    {
+      idToken: 'signed-google-id-token',
+      audience: 'configured-google-client-id',
+    },
+  ]);
 });

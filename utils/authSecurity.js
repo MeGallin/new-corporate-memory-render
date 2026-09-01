@@ -20,3 +20,9 @@ export const getVerifiedGoogleProfile = (payload) => {
     name: payload.name || 'Google User',
   };
 };
+
+export const verifyGoogleIdToken = async ({ client, idToken, audience }) => {
+  const ticket = await client.verifyIdToken({ idToken, audience });
+
+  return getVerifiedGoogleProfile(ticket.getPayload());
+};
