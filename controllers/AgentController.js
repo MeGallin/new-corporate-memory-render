@@ -2,6 +2,21 @@ import Memories from '../models/MemoriesModel.js';
 import { ChatOpenAI, OpenAIEmbeddings } from '@langchain/openai';
 import { buildAgentPrompt } from '../prompts/AgentPrompt.js';
 
+export const DEFAULT_AGENT_CHAT_MODEL = 'gpt-5.6-luna';
+export const DEFAULT_AGENT_EMBEDDING_MODEL = 'text-embedding-3-small';
+
+export const getAgentChatModelConfig = () => ({
+  apiKey: process.env.OPENAI_API_KEY,
+  model: process.env.OPENAI_MODEL || DEFAULT_AGENT_CHAT_MODEL,
+  reasoning: { effort: 'low' },
+});
+
+export const getAgentEmbeddingModelConfig = () => ({
+  apiKey: process.env.OPENAI_API_KEY,
+  model:
+    process.env.OPENAI_EMBEDDING_MODEL || DEFAULT_AGENT_EMBEDDING_MODEL,
+});
+
 // Map numeric priority to a friendly label (if present)
 function toPriority(num) {
   if (num === 1) return 'low';
@@ -112,10 +127,7 @@ export const agentMemoriesChat = async (req, res, next) => {
       metadata: m,
     }));
 
-    const embeddings = new OpenAIEmbeddings({
-      apiKey: process.env.OPENAI_API_KEY,
-      model: process.env.OPENAI_EMBEDDING_MODEL || 'text-embedding-3-small',
-    });
+    const embeddings = new OpenAIEmbeddings(getAgentEmbeddingModelConfig());
     const docVectors = await embeddings.embedDocuments(
       docsForEmbed.map((d) => d.pageContent),
     );
@@ -150,11 +162,7 @@ export const agentMemoriesChat = async (req, res, next) => {
 
     const workingSet = ranked.slice(0, 8).map((r) => r.doc);
 
-    const llm = new ChatOpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-      modelName: process.env.OPENAI_MODEL || 'gpt-4o-mini',
-      temperature: 0.2,
-    });
+    const llm = new ChatOpenAI(getAgentChatModelConfig());
 
     const contextBlocks = workingSet
       .map((d) => `# [${d.metadata.id}] ${d.metadata.title || '(untitled)'}\n${d.pageContent}`)

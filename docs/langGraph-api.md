@@ -141,9 +141,14 @@ Auth & Data:
 - `mongoose`: MongoDB ODM (memories, users)
 
 AI (Agent):
-- `@langchain/openai`:
+- `@langchain/core` 1.2.9 and `@langchain/openai` 1.5.11:
   - `OpenAIEmbeddings` (default `text-embedding-3-small` via `OPENAI_EMBEDDING_MODEL`)
-  - `ChatOpenAI` (default `gpt-4o-mini` via `OPENAI_MODEL`)
+  - `ChatOpenAI` (default `gpt-5.6-luna` via `OPENAI_MODEL`, with low reasoning effort)
+
+Model selection:
+- GPT-5.6 Luna is the cost-sensitive model in the latest GPT-5.6 family and supports the existing Chat Completions integration.
+- As of 1 September 2026, OpenAI lists standard text pricing at $0.20 per million input tokens and $1.20 per million output tokens. Recheck current pricing before a future model change.
+- The existing `OPENAI_MODEL` environment override remains available if a different account-enabled model is required.
 
 Additional features in the wider API:
 - Email utilities (`utils/sendEmail.js`) for register/reset flows
@@ -179,7 +184,7 @@ Located in `api/config.env` (examples):
 - `MONGO_URI=...`
 - `JWT_SECRET=...`
 - `OPENAI_API_KEY=...`
-- `OPENAI_MODEL=gpt-4o-mini` (optional)
+- `OPENAI_MODEL=gpt-5.6-luna` (optional; this is also the code default)
 - `OPENAI_EMBEDDING_MODEL=text-embedding-3-small` (optional)
 - `MAILER_*`, `CLOUDINARY_*` for other app features
 

@@ -9,7 +9,7 @@
     "server": "nodemon server.js",
     "debug": "ndb server",
     "smoke": "node scripts/smoke-test.mjs",
-    "test": "node --test test/authSecurity.test.js test/emailTransport.test.js test/expressCompatibility.test.js test/routeSecurity.test.js test/uploadDependencies.test.js"
+    "test": "node --test test/agentDependencies.test.js test/authSecurity.test.js test/emailTransport.test.js test/expressCompatibility.test.js test/routeSecurity.test.js test/uploadDependencies.test.js"
   },
   "repository": {
     "type": "git",
@@ -22,12 +22,12 @@
   },
   "homepage": "https://github.com/MeGallin/new-corporate-memory#readme",
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22.0.0"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
-    "@langchain/core": "^0.3.39",
-    "@langchain/openai": "^0.4.9",
+    "@langchain/core": "^1.2.9",
+    "@langchain/openai": "^1.5.11",
     "cloudinary": "^2.11.0",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",

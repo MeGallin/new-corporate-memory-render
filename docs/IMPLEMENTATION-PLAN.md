@@ -6,7 +6,7 @@ Last updated: 1 September 2026
 
 ## Current position
 
-- Production API is running successfully as a Docker service on Render at commit `31761ee`.
+- Production API is running successfully as a Docker service on Render at commit `57a4b42`.
 - Render health checks are configured at `/health` and currently pass with MongoDB connected.
 - Both Stage 2 security patches are deployed, including the admin-exposure, rate-limit, and focused route-test changes.
 - The production API now has the Google web client ID required for verified Google sign-in.
@@ -15,13 +15,15 @@ Last updated: 1 September 2026
 - The API now uses Cloudinary 2.11.0 and Multer 2.3.0; the upgrade is verified locally and in production, including an authenticated image upload.
 - The API now uses JSON Web Token 9.0.3 with HS256-only application token verification; the upgrade is verified locally and in production, including a manual login.
 - The API now uses Express 5.2.1; the upgrade is verified locally and in production, including health, login, and missing-route checks.
-- The Nodemailer 9.1.0 upgrade and email transport hardening are complete locally; review, commit approval, manual deployment, and a production email smoke check remain pending.
+- The API now uses Nodemailer 9.1.0 with hardened SMTP transport; the upgrade is verified locally and through an application email submission against the deployed backend.
+- The LangChain/OpenAI integration upgrade and GPT-5.6 Luna default are complete locally; review, commit approval, manual deployment, and one authenticated Agent Chat smoke check remain pending.
+- The local non-secret model settings now use `OPENAI_MODEL=gpt-5.6-luna` and the correctly named `OPENAI_EMBEDDING_MODEL`; apply the same names in Render during the deployment checkpoint so an older environment override cannot retain GPT-4o mini.
 - Atlas backup and access hardening remain deliberately deferred for their own controlled phase.
 - The client is still React 18 on Create React App 5; no client modernization has started.
 
 ### Next recommended action
 
-Review the isolated Nodemailer 9.1.0 change set, then commit and manually deploy it after explicit approval. Verify one ordinary application email before starting the separate Agent Chat/LangChain dependency phase.
+Review the isolated Agent Chat/LangChain change set, then commit and manually deploy it after explicit approval. Run one authenticated Agent Chat question to verify model availability, answer formatting, and citations before proceeding to logging and scheduling dependencies.
 
 ## Stage 1 — Local Docker parity
 
@@ -61,7 +63,8 @@ Review the isolated Nodemailer 9.1.0 change set, then commit and manually deploy
 - [x] Upgrade Cloudinary and Multer in an isolated upload-focused change set to remove the legacy `vm2` path and Multer 1.x warnings.
 - [x] Upgrade JSON Web Token 8 to 9 and pin application token verification to HS256.
 - [x] Upgrade Express in its own controlled change set.
-- [ ] Upgrade Nodemailer and harden the SMTP transport. Implementation and local verification are complete; production deployment is pending.
+- [x] Upgrade Nodemailer and harden the SMTP transport.
+- [ ] Upgrade LangChain/OpenAI and move Agent Chat to the cost-sensitive GPT-5.6 Luna model. Implementation and offline verification are complete; production deployment is pending.
 - [ ] Upgrade the remaining API dependencies in controlled groups.
 - [ ] Re-run security audits and resolve remaining reachable vulnerabilities.
 - [ ] Move scheduled jobs out of the web process before adding more API instances.
