@@ -41,46 +41,32 @@ function shouldEncrypt(doc) {
 }
 
 // Encrypt before save
-MemoriesSchema.pre('save', function (next) {
-  try {
-    if (shouldEncrypt(this) && this.user) {
-      this.memory = encryptMemory(this.memory, this.user.toString());
-    }
-    next();
-  } catch (e) {
-    next(e);
+MemoriesSchema.pre('save', function () {
+  if (shouldEncrypt(this) && this.user) {
+    this.memory = encryptMemory(this.memory, this.user.toString());
   }
 });
 
 // Encrypt on findOneAndUpdate
-MemoriesSchema.pre('findOneAndUpdate', async function (next) {
-  try {
-    const update = this.getUpdate() || {};
-    const setter = update.$set || update;
-    if (!(setter && typeof setter.memory === 'string')) return next();
+MemoriesSchema.pre('findOneAndUpdate', async function () {
+  const update = this.getUpdate() || {};
+  const setter = update.$set || update;
+  if (!(setter && typeof setter.memory === 'string')) return;
 
-    const enabled =
-      String(process.env.ENCRYPTION_ENABLED || '').toLowerCase() !== 'false';
-    if (!enabled || isCiphertext(setter.memory)) return next();
+  const enabled =
+    String(process.env.ENCRYPTION_ENABLED || '').toLowerCase() !== 'false';
+  if (!enabled || isCiphertext(setter.memory)) return;
 
-    let userId = setter.user;
-    if (!userId) {
-      const doc = await this.model
-        .findOne(this.getQuery())
-        .select('user')
-        .lean();
-      userId = doc?.user;
-    }
-    if (!userId) return next();
-
-    const encrypted = encryptMemory(setter.memory, userId.toString());
-    if (update.$set) update.$set.memory = encrypted;
-    else this.setUpdate({ ...update, memory: encrypted });
-
-    next();
-  } catch (e) {
-    next(e);
+  let userId = setter.user;
+  if (!userId) {
+    const doc = await this.model.findOne(this.getQuery()).select('user').lean();
+    userId = doc?.user;
   }
+  if (!userId) return;
+
+  const encrypted = encryptMemory(setter.memory, userId.toString());
+  if (update.$set) update.$set.memory = encrypted;
+  else this.setUpdate({ ...update, memory: encrypted });
 });
 
 // Decrypt on output

@@ -87,7 +87,7 @@ export const editMemory = catchAsync(async (req, res, next) => {
     req.params.id,
     { $set: updatedMemory },
     {
-      new: true,
+      returnDocument: 'after',
     },
   );
   res.status(200).json({ success: true });

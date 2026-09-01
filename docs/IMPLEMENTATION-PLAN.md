@@ -6,12 +6,12 @@ Last updated: 1 September 2026
 
 ## Current position
 
-- Production API is running successfully as a Docker service on Render at commit `fb17c0f`.
+- Production API is running successfully as a Docker service on Render at commit `c34bce8`.
 - Render health checks are configured at `/health` and currently pass with MongoDB connected.
 - Both Stage 2 security patches are deployed, including the admin-exposure, rate-limit, and focused route-test changes.
 - The production API now has the Google web client ID required for verified Google sign-in.
 - Render's native GitHub auto-deploy integration does not currently have repository access; production deployments are manual by user decision.
-- The API now uses Mongoose 8.24.4 and the upgrade is verified locally and in production.
+- The API currently runs Mongoose 8.24.4 in production. The isolated Mongoose 9.9.4 upgrade is complete and reviewed locally, with callback-style middleware and deprecated update-return options migrated; commit, manual deployment, and production QA remain pending.
 - The API now uses Cloudinary 2.11.0 and Multer 2.3.0; the upgrade is verified locally and in production, including an authenticated image upload.
 - The API now uses JSON Web Token 9.0.3 with HS256-only application token verification; the upgrade is verified locally and in production, including a manual login.
 - The API now uses Express 5.2.1; the upgrade is verified locally and in production, including health, login, and missing-route checks.
@@ -23,14 +23,14 @@ Last updated: 1 September 2026
 - Helmet 8.3.0 and CORS 2.8.6 are deployed at `288ef12`. Production verification confirmed `/health`, the allowed-origin and credential headers, omission of CORS permission for an unknown origin, Helmet's CSP and one-year HSTS header, and removal of `X-Powered-By`.
 - bcryptjs 3.0.3 is deployed at `2273bfd`. The container and `/health` endpoint are healthy, and focused tests confirm existing `$2a$` hashes remain valid, new `$2b$` hashes retain 12 rounds, and new passwords cannot exceed bcrypt's 72-byte input limit. A credentialed production login was not independently performed for this dependency phase.
 - dotenv 17.4.2 is deployed at `fb17c0f`. Render startup was clean, contained no dotenv injection messages, connected to MongoDB normally, and passed internal and public health checks.
-- Google Auth Library 11.0.2 is implemented and reviewed locally. The existing verified ID-token flow still passes the bearer token and configured audience to `OAuth2Client.verifyIdToken()` and continues to require a verified email; commit approval and manual deployment remain pending.
+- Google Auth Library 11.0.2 is deployed at `c34bce8`. Render starts normally, `/health` passes, and a deliberately invalid Google token returns HTTP 401. After correcting the ignored local API configuration, the user completed an ordinary Google sign-in successfully, closing the end-to-end QA check.
 - The current production-install audit reports zero known vulnerabilities after refreshing MongoDB's compatible optional Socks dependency to 2.8.9.
 - Atlas backup and access hardening remain deliberately deferred for their own controlled phase.
 - The client is still React 18 on Create React App 5; no client modernization has started.
 
 ### Next recommended action
 
-Review and, after explicit approval, commit the Google Auth Library 11 compatibility group. Manually deploy it on Render, verify `/health`, reject a deliberately invalid Google token, and complete one ordinary Google sign-in through the client. Keep Mongoose 9, client modernization, and Atlas work separate.
+With explicit commit approval, commit the isolated Mongoose 9.9.4 change as `api: upgrade mongoose to version 9`. The user can then push it, manually rebuild Render, verify `/health`, and perform ordinary password/Google login plus create/edit/read memory checks. No migration script or database rewrite is required. After that checkpoint, API dependency modernization is complete and the next implementation phase is the client modernization work in Stage 5.
 
 ## Stage 1 — Local Docker parity
 
@@ -67,12 +67,13 @@ Review and, after explicit approval, commit the Google Auth Library 11 compatibi
 ## Stage 4 — API dependency modernization
 
 - [x] Upgrade Mongoose 6 to Mongoose 8 and resolve deprecated connection and middleware behavior.
+- [ ] Deploy Mongoose 9.9.4. Local implementation and review are complete: save/query middleware now uses promise-based hooks, `returnDocument: 'after'` replaces deprecated `new: true`, the Render-equivalent production install succeeds, all 33 offline API tests pass, and the production-only audit reports zero vulnerabilities. No Atlas connection or data operation was used during verification.
 - [x] Upgrade Cloudinary and Multer in an isolated upload-focused change set to remove the legacy `vm2` path and Multer 1.x warnings.
 - [x] Upgrade JSON Web Token 8 to 9 and pin application token verification to HS256.
 - [x] Upgrade Express in its own controlled change set.
 - [x] Upgrade Nodemailer and harden the SMTP transport.
 - [x] Upgrade LangChain/OpenAI and move Agent Chat to the cost-sensitive GPT-5.6 Luna model; deployed at `1cdb0be` and verified with an authenticated production request.
-- [ ] Upgrade the remaining API dependencies in controlled groups. Morgan 1.12.0, node-cron 4.6.0, Moment 2.30.1, Socks 2.8.9, Helmet 8.3.0, and CORS 2.8.6 are complete in production at `288ef12`; bcryptjs 3.0.3 is complete in production at `2273bfd`; dotenv 17.4.2 is complete in production at `fb17c0f`. Google Auth Library 11.0.2 is complete locally and pending deployment; Mongoose 9 remains a separate candidate.
+- [ ] Complete the final API dependency deployment. Morgan 1.12.0, node-cron 4.6.0, Moment 2.30.1, Socks 2.8.9, Helmet 8.3.0, CORS 2.8.6, bcryptjs 3.0.3, dotenv 17.4.2, and Google Auth Library 11.0.2 are complete in production. Mongoose 9.9.4 is complete locally and is the only remaining dependency deployment checkpoint.
 - [x] Re-run the production-only security audit and resolve the currently reported reachable vulnerabilities; the local audit now reports zero findings.
 - [ ] Move scheduled jobs out of the web process before adding more API instances.
 - [ ] Avoid re-embedding every memory on every Agent Chat request.

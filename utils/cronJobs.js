@@ -54,7 +54,7 @@ export const createReminderTask = () => {
           await Memories.findByIdAndUpdate(
             memory._id,
             { hasSentSevenDayReminder: true },
-            { new: true },
+            { returnDocument: 'after' },
           );
 
           console.log(`Sent 7-day reminder for memory: ${memory._id}`);
