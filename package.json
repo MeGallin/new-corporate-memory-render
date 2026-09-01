@@ -9,7 +9,7 @@
     "server": "nodemon server.js",
     "debug": "ndb server",
     "smoke": "node scripts/smoke-test.mjs",
-    "test": "node --test test/authSecurity.test.js test/routeSecurity.test.js test/uploadDependencies.test.js"
+    "test": "node --test test/authSecurity.test.js test/expressCompatibility.test.js test/routeSecurity.test.js test/uploadDependencies.test.js"
   },
   "repository": {
     "type": "git",
@@ -31,7 +31,7 @@
     "cloudinary": "^2.11.0",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
-    "express": "^4.18.2",
+    "express": "^5.2.1",
     "express-rate-limit": "^8.7.0",
     "google-auth-library": "^10.9.1",
     "jsonwebtoken": "^9.0.3",

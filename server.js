@@ -81,7 +81,7 @@ app.use('/api/', AdminRoute);
 app.use('/api/', AgentRoute);
 
 // Basic route error handler (404 Not Found)
-app.all('*', (req, res, next) => {
+app.all('/{*path}', (req, res, next) => {
   next(new ErrorResponse(`Can't find ${req.originalUrl} on this server`, 404));
 });
 
