@@ -9,7 +9,7 @@
     "server": "nodemon server.js",
     "debug": "ndb server",
     "smoke": "node scripts/smoke-test.mjs",
-    "test": "node --test test/authSecurity.test.js test/routeSecurity.test.js"
+    "test": "node --test test/authSecurity.test.js test/routeSecurity.test.js test/uploadDependencies.test.js"
   },
   "repository": {
     "type": "git",
@@ -28,7 +28,7 @@
     "bcryptjs": "^2.4.3",
     "@langchain/core": "^0.3.39",
     "@langchain/openai": "^0.4.9",
-    "cloudinary": "^1.33.0",
+    "cloudinary": "^2.11.0",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
@@ -37,7 +37,7 @@
     "jsonwebtoken": "^8.5.1",
     "moment": "^2.29.4",
     "mongoose": "^8.24.4",
-    "multer": "^1.4.5-lts.1",
+    "multer": "^2.3.0",
     "node-cron": "^3.0.2",
     "nodemailer": "^6.8.0",
     "request-ip": "^3.3.0",

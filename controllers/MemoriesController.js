@@ -4,7 +4,7 @@ import ErrorResponse from '../utils/errorResponse.js';
 import moment from 'moment';
 import cron from 'node-cron';
 import sendEmail from '../utils/sendEmail.js';
-import cloudinary from 'cloudinary';
+import { v2 as cloudinary } from 'cloudinary';
 import catchAsync from '../utils/catchAsync.js';
 
 // @description: USER get all memories

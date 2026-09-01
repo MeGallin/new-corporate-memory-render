@@ -1,6 +1,6 @@
 import express from 'express';
 import Memories from '../models/MemoriesModel.js';
-import cloudinary from 'cloudinary';
+import { v2 as cloudinary } from 'cloudinary';
 import { protect } from '../middleWare/authMiddleWare.js';
 import { isResourceOwner } from '../utils/authSecurity.js';
 import {

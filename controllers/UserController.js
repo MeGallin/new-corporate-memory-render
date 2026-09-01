@@ -4,7 +4,7 @@ import ErrorResponse from '../utils/errorResponse.js';
 import sendEmail from '../utils/sendEmail.js';
 import jwt from 'jsonwebtoken';
 import requestIp from 'request-ip';
-import cloudinary from 'cloudinary';
+import { v2 as cloudinary } from 'cloudinary';
 import catchAsync from '../utils/catchAsync.js';
 import { OAuth2Client } from 'google-auth-library';
 import {

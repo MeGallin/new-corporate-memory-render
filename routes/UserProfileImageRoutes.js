@@ -1,6 +1,6 @@
 import express from 'express';
 import User from '../models/UserModel.js';
-import cloudinary from 'cloudinary';
+import { v2 as cloudinary } from 'cloudinary';
 import { protect } from '../middleWare/authMiddleWare.js';
 import {
   imageUpload,
