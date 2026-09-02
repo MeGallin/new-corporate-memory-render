@@ -47,6 +47,7 @@ test('email messages disable file and URL access', () => {
     const mailOptions = buildMailOptions({
       to: 'recipient@example.com',
       subject: 'Test message',
+      text: 'Hello',
       html: '<p>Hello</p>',
     });
 
@@ -55,6 +56,7 @@ test('email messages disable file and URL access', () => {
       to: 'recipient@example.com',
       bcc: 'audit@example.com',
       subject: 'Test message',
+      text: 'Hello',
       html: '<p>Hello</p>',
       disableFileAccess: true,
       disableUrlAccess: true,

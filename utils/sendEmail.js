@@ -20,6 +20,7 @@ export const buildMailOptions = (options) => ({
   to: options.to,
   bcc: process.env.MAILER_BCC,
   subject: options.subject,
+  ...(options.text ? { text: options.text } : {}),
   html: options.html,
   disableFileAccess: true,
   disableUrlAccess: true,

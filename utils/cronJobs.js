@@ -3,6 +3,7 @@ import moment from 'moment';
 import Memories from '../models/MemoriesModel.js';
 import User from '../models/UserModel.js';
 import sendEmail from './sendEmail.js';
+import { buildReminderEmail } from './emailTemplates.js';
 
 export const REMINDER_CRON_EXPRESSION = '0 8 * * *';
 export const REMINDER_CRON_OPTIONS = Object.freeze({
@@ -30,25 +31,19 @@ export const createReminderTask = () => {
           const user = await User.findById(memory.user);
           if (!user) continue;
 
-          const text = `
-            <h1>Hi ${user.name}</h1>
-            <p>You have a memory due within the next seven (7) days.</p>
-            <h3>The title is: <span style="color: orange;">${
-              memory.title
-            }</span></h3>
-            <p>The task is due on ${moment(memory.dueDate).format(
-              'MMMM Do YYYY',
-            )}</p>
-            <p>Please log into <a href="https://yourcorporatememory.com" id="link">YOUR ACCOUNT</a> to see the reminder</p>
-            <p>Thank you</p>
-            <h3>Your Corporate Memory Management</h3>
-          `;
+          const emailContent = buildReminderEmail({
+            name: user.name,
+            memoryTitle: memory.title,
+            dueDate: moment(memory.dueDate).format('MMMM Do YYYY'),
+            accountUrl: 'https://yourcorporatememory.com',
+          });
 
           await sendEmail({
             from: process.env.MAILER_FROM,
             to: user.email,
             subject: 'Your Corporate Memory Automatic Reminder',
-            html: text,
+            html: emailContent.html,
+            text: emailContent.text,
           });
 
           await Memories.findByIdAndUpdate(
