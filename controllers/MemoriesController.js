@@ -70,6 +70,31 @@ export const editMemory = catchAsync(async (req, res, next) => {
     );
   }
 
+  const updateFields = Object.keys(req.body);
+  const booleanToggleField =
+    updateFields.length === 1 &&
+    ['isComplete', 'setDueDate'].includes(updateFields[0])
+      ? updateFields[0]
+      : null;
+
+  if (booleanToggleField) {
+    if (typeof req.body[booleanToggleField] !== 'boolean') {
+      const fieldLabel =
+        booleanToggleField === 'isComplete'
+          ? 'Completion status'
+          : 'Due date status';
+      return next(new ErrorResponse(`${fieldLabel} must be a boolean`, 400));
+    }
+
+    await Memories.findByIdAndUpdate(req.params.id, {
+      $set: { [booleanToggleField]: req.body[booleanToggleField] },
+    });
+    return res.status(200).json({
+      success: true,
+      [booleanToggleField]: req.body[booleanToggleField],
+    });
+  }
+
   const { title, memory, dueDate, tag, priority, isComplete } = req.body;
 
   const validationError = getMemoryValidationError(req.body);

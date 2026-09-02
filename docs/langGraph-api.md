@@ -157,7 +157,8 @@ Additional features in the wider API:
 - Scheduled reminder emails (`utils/cronJobs.js`)
 
 Client context:
-- React 18 + Redux Thunk (see repo `AGENTS.md` for client structure and commands)
+- React 19 + Redux Thunk on Vite (see repo `AGENTS.md` for client structure and commands)
+- The Memories route hydrates missing account details before loading memories after a direct authenticated refresh, preventing its visible count from diverging from Agent Chat's authenticated database view.
 
 ---
 
@@ -166,6 +167,7 @@ Client context:
 - Reusable component: `client/src/Components/AgentChat/AgentChatComponent.jsx`
   - Auth-aware: consumes Redux auth and calls this endpoint with Bearer JWT.
   - UX details: input with conditional actions, last-question label (`Q.`), answer label (`A.`) inline, list formatting and date highlighting.
+  - Citation UX: converts inline `[M-<id>]` markers into numbered links and renders matching returned memory titles and ranking scores in a compact `Referenced memories` fieldset. If a response omits inline markers, the first three ranked results are labelled `Relevant memories`.
   - Drop-in usage: include `<AgentChatComponent />` in any view (e.g., Memories).
 - Redux additions:
   - `client/src/Store/actions/agentActions.js` → `agentChatAction({ question, filters? })`
