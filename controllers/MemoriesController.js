@@ -6,6 +6,7 @@ import cron from 'node-cron';
 import sendEmail from '../utils/sendEmail.js';
 import { v2 as cloudinary } from 'cloudinary';
 import catchAsync from '../utils/catchAsync.js';
+import { getMemoryValidationError } from '../utils/inputValidation.js';
 
 // @description: USER get all memories
 // @route: GET /api/memories
@@ -31,15 +32,17 @@ export const createMemory = catchAsync(async (req, res, next) => {
   const { title, memory, dueDate, tag, priority, isComplete } = req.body;
   const userId = req.user._id;
 
-  if (!title || !memory)
-    return next(new ErrorResponse('Please provide a Title and a Memory', 400));
+  const validationError = getMemoryValidationError(req.body);
+  if (validationError) {
+    return next(new ErrorResponse(validationError, 400));
+  }
 
   // Determine setDueDate based on whether dueDate is provided
   const finalSetDueDate = !!dueDate;
 
   await Memories.create({
-    title,
-    memory,
+    title: title.trim(),
+    memory: memory.trim(),
     setDueDate: finalSetDueDate, // Use the determined value
     dueDate,
     tag,
@@ -69,12 +72,17 @@ export const editMemory = catchAsync(async (req, res, next) => {
 
   const { title, memory, dueDate, tag, priority, isComplete } = req.body;
 
+  const validationError = getMemoryValidationError(req.body);
+  if (validationError) {
+    return next(new ErrorResponse(validationError, 400));
+  }
+
   // Determine setDueDate based on whether dueDate is provided in the update
   const finalSetDueDate = !!dueDate;
 
   const updatedMemory = {
-    title,
-    memory,
+    title: title.trim(),
+    memory: memory.trim(),
     setDueDate: finalSetDueDate, // Use the determined value
     dueDate,
     tag,

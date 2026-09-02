@@ -6,6 +6,7 @@ import {
   DEFAULT_AGENT_EMBEDDING_MODEL,
   getAgentChatModelConfig,
   getAgentEmbeddingModelConfig,
+  getFilterValidationError,
 } from '../controllers/AgentController.js';
 
 const preserveEnvironment = (keys) =>
@@ -62,4 +63,20 @@ test('Agent Chat retains environment overrides and the low-cost embedding defaul
   } finally {
     restoreEnvironment(environment);
   }
+});
+
+test('Agent Chat validates optional filters before model work', () => {
+  assert.equal(getFilterValidationError(undefined), null);
+  assert.equal(
+    getFilterValidationError({ tags: ['project'], priority: ['high'], dueOnly: true }),
+    null,
+  );
+  assert.equal(
+    getFilterValidationError({ priority: ['urgent'] }),
+    'filter priority must use low, med, or high',
+  );
+  assert.equal(
+    getFilterValidationError({ dueOnly: 'yes' }),
+    'filter dueOnly must be true or false',
+  );
 });

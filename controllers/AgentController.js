@@ -67,6 +67,35 @@ function cosineSim(a, b) {
   return magA && magB ? dot / (magA * magB) : 0;
 }
 
+export function getFilterValidationError(filters) {
+  if (filters === undefined) return null;
+  if (!filters || typeof filters !== 'object' || Array.isArray(filters)) {
+    return 'filters must be an object';
+  }
+  if (
+    filters.tags !== undefined &&
+    (!Array.isArray(filters.tags) ||
+      filters.tags.some((tag) => typeof tag !== 'string' || !tag.trim()))
+  ) {
+    return 'filter tags must be non-empty strings';
+  }
+  if (
+    filters.priority !== undefined &&
+    (!Array.isArray(filters.priority) ||
+      filters.priority.some(
+        (priority) =>
+          typeof priority !== 'string' ||
+          !['low', 'med', 'high'].includes(priority.toLowerCase()),
+      ))
+  ) {
+    return 'filter priority must use low, med, or high';
+  }
+  if (filters.dueOnly !== undefined && typeof filters.dueOnly !== 'boolean') {
+    return 'filter dueOnly must be true or false';
+  }
+  return null;
+}
+
 function parseFilters(question, base) {
   const q = (question || '').toLowerCase();
   const filters = { ...(base || {}) };
@@ -96,8 +125,15 @@ function parseFilters(question, base) {
 export const agentMemoriesChat = async (req, res, next) => {
   try {
     const { question, filters: inputFilters } = req.body || {};
-    if (!question || typeof question !== 'string') {
+    if (!question || typeof question !== 'string' || !question.trim()) {
       return res.status(400).json({ error: 'question is required' });
+    }
+    if (question.trim().length > 500) {
+      return res.status(400).json({ error: 'question must be 500 characters or fewer' });
+    }
+    const filterValidationError = getFilterValidationError(inputFilters);
+    if (filterValidationError) {
+      return res.status(400).json({ error: filterValidationError });
     }
 
     // Load this user's memories from DB. Use toObject() to trigger model transforms (decrypt memory).

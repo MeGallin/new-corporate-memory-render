@@ -1,6 +1,7 @@
 import ErrorResponse from '../utils/errorResponse.js';
 import sendEmail from '../utils/sendEmail.js';
 import catchAsync from '../utils/catchAsync.js';
+import { isValidEmail, isValidName } from '../utils/inputValidation.js';
 
 // Basic HTML escaping function to prevent HTML injection
 const escapeHTML = (str) =>
@@ -15,10 +16,6 @@ const escapeHTML = (str) =>
         '"': '&quot;',
       }[tag] || tag),
   );
-
-// Basic email validation regex
-const emailRegEx =
-  /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
 
 export const sendContactForm = catchAsync(async (req, res, next) => {
   const { name, email, message } = req.body;
@@ -35,13 +32,23 @@ export const sendContactForm = catchAsync(async (req, res, next) => {
     return next(new ErrorResponse('Please fill out all required fields', 400));
   }
 
-  if (!emailRegEx.test(email)) {
+  if (!isValidName(name)) {
+    return next(new ErrorResponse('Enter your first name and surname.', 400));
+  }
+
+  if (!isValidEmail(email)) {
     return next(new ErrorResponse('Please provide a valid email address', 400));
   }
 
+  if (message.trim().length < 9) {
+    return next(
+      new ErrorResponse('Message must contain at least 9 characters.', 400),
+    );
+  }
+
   // Sanitize user input before embedding in HTML email
-  const sanitizedName = escapeHTML(name);
-  const sanitizedMessage = escapeHTML(message);
+  const sanitizedName = escapeHTML(name.trim());
+  const sanitizedMessage = escapeHTML(message.trim());
 
   const text = `<div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
     <div style="text-align: center; padding-bottom: 20px; border-bottom: 1px solid #eee;">
@@ -65,7 +72,7 @@ export const sendContactForm = catchAsync(async (req, res, next) => {
   // Send Email
   await sendEmail({
     from: process.env.MAILER_FROM,
-    to: email, // The 'to' address is not part of the HTML body, so it doesn't need escaping here
+    to: email.trim(), // The address is not part of the HTML body.
     subject: 'Your Corporate Memory Contact Form',
     html: text,
   });

@@ -11,6 +11,12 @@ import {
   extractBearerToken,
   verifyGoogleIdToken,
 } from '../utils/authSecurity.js';
+import {
+  PASSWORD_REQUIREMENT,
+  isValidEmail,
+  isValidName,
+  isValidNewPassword,
+} from '../utils/inputValidation.js';
 
 const googleClient = new OAuth2Client();
 
@@ -21,9 +27,19 @@ export const register = catchAsync(async (req, res, next) => {
   const ipAddress = requestIp.getClientIp(req);
   const { name, email, password } = req.body;
 
+  if (!isValidName(name)) {
+    return next(new ErrorResponse('Enter your first name and surname.', 400));
+  }
+  if (!isValidEmail(email)) {
+    return next(new ErrorResponse('Enter a valid email address.', 400));
+  }
+  if (!isValidNewPassword(password)) {
+    return next(new ErrorResponse(PASSWORD_REQUIREMENT, 400));
+  }
+
   const user = await User.create({
-    name,
-    email,
+    name: name.trim(),
+    email: email.trim(),
     password,
     profileImage: '/assets/images/sample.jpg',
     cloudinaryId: '12345',
@@ -80,9 +96,12 @@ export const login = catchAsync(async (req, res, next) => {
   if (!email || !password) {
     return next(new ErrorResponse('Please provide an email and Password', 400));
   }
+  if (!isValidEmail(email)) {
+    return next(new ErrorResponse('Please provide valid credentials', 401));
+  }
 
   // Check if user exists and PW is correct
-  const user = await User.findOne({ email }).select('+password');
+  const user = await User.findOne({ email: email.trim() }).select('+password');
 
   if (!user) {
     return next(new ErrorResponse('Please provide valid credentials', 401));
@@ -155,11 +174,24 @@ export const googleLogin = catchAsync(async (req, res, next) => {
 export const updateUserDetails = catchAsync(async (req, res, next) => {
   const user = await User.findById(req.user.id);
 
-  if (!user) return new ErrorResponse('User not found', 400);
-  user.name = req.body.name || user.name;
-  user.email = req.body.email || user.email;
-  if (req.body.password) {
-    user.password = req.body.password || user.password;
+  if (!user) return next(new ErrorResponse('User not found', 400));
+  if (req.body.name !== undefined) {
+    if (!isValidName(req.body.name)) {
+      return next(new ErrorResponse('Enter your first name and surname.', 400));
+    }
+    user.name = req.body.name.trim();
+  }
+  if (req.body.email !== undefined) {
+    if (!isValidEmail(req.body.email)) {
+      return next(new ErrorResponse('Enter a valid email address.', 400));
+    }
+    user.email = req.body.email.trim();
+  }
+  if (req.body.password !== undefined) {
+    if (!isValidNewPassword(req.body.password)) {
+      return next(new ErrorResponse(PASSWORD_REQUIREMENT, 400));
+    }
+    user.password = req.body.password;
   }
   const updatedUser = await user.save();
   res.json({
@@ -174,7 +206,11 @@ export const updateUserDetails = catchAsync(async (req, res, next) => {
 export const forgotPassword = catchAsync(async (req, res, next) => {
   const { email } = req.body;
 
-  const user = await User.findOne({ email });
+  if (!isValidEmail(email)) {
+    return next(new ErrorResponse('Enter a valid email address.', 400));
+  }
+
+  const user = await User.findOne({ email: email.trim() });
 
   if (!user) return next(new ErrorResponse('Email could not be set', 404));
 
@@ -206,6 +242,10 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
 // @route: PUT /api/resetpassword/:token
 // @access: Private
 export const resetPassword = catchAsync(async (req, res, next) => {
+  if (!isValidNewPassword(req.body.password)) {
+    return next(new ErrorResponse(PASSWORD_REQUIREMENT, 400));
+  }
+
   const resetPasswordToken = crypto
     .createHash('sha256')
     .update(req.params.token)

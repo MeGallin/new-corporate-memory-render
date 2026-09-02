@@ -45,3 +45,15 @@ Use this checklist to validate the AgentChatComponent UX across states.
 - Memories list still renders and updates normally (create/edit/delete flows unaffected).
 - No layout overlap with the Sort or Create controls.
 
+## Application form validation
+
+- Sign in: malformed email and passwords shorter than 6 characters show inline feedback and keep Sign in disabled. Existing passwords are not judged against the new-password complexity rule.
+- Create account: require first name and surname, valid email, matching passwords, and a 6-to-72-character password containing uppercase, lowercase, a number, and a supported special character.
+- Password recovery: require a valid email. Token-based reset uses the same new-password rule and redirects only after API success.
+- Contact: require first name and surname, valid email, and at least 9 non-space message characters.
+- Create/Edit memory: reject blank or whitespace-only titles, require at least 5 non-space note characters, limit priority to 1-5, and require a date when the reminder control is enabled.
+- Edit Details: validate only the selected field and send only that field in the update request. The Update label remains stable while disabled.
+- Agent Chat: reject blank questions, limit questions to 500 characters, and accept only low, med, or high in the optional priority filter.
+- Image selection: accept JPG and PNG only, enforce the 5 MB limit before preview, and retain the API upload check as the final authority.
+- Accessibility: invalid shared inputs expose `aria-invalid`; error text is linked through `aria-describedby`; password visibility uses a labelled keyboard-accessible button.
+- Do not submit account, password, Contact, memory, or image forms during visual-only QA. Use deliberately non-sensitive test values and stop before any action that would change data or send email.
