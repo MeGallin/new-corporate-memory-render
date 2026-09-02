@@ -7,6 +7,9 @@ const palette = Object.freeze({
   border: '#394657',
 });
 
+const fixedBackground = (colour) =>
+  `background-color: ${colour}; background-image: linear-gradient(${colour}, ${colour});`;
+
 export const escapeEmailHtml = (value = '') =>
   String(value).replace(
     /[&<>'"]/g,
@@ -34,17 +37,17 @@ const safeEmailUrl = (value) => {
 const actionButton = (label, url) => `
   <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 24px 0 8px;">
     <tr>
-      <td style="border-radius: 8px; background-color: ${palette.orange};">
+      <td bgcolor="${palette.orange}" style="border-radius: 8px; ${fixedBackground(palette.orange)}">
         <a href="${safeEmailUrl(url)}" style="display: inline-block; padding: 13px 20px; color: ${palette.black}; font-family: Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 700; line-height: 1; text-decoration: none; text-transform: uppercase; letter-spacing: 0.6px;">${escapeEmailHtml(label)}</a>
       </td>
     </tr>
   </table>`;
 
 const informationPanel = (label, content) => `
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin: 22px 0; border: 1px solid ${palette.border}; border-radius: 8px; background-color: ${palette.black};">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="${palette.black}" style="margin: 22px 0; border: 1px solid ${palette.border}; border-radius: 8px; ${fixedBackground(palette.black)}">
     <tr>
       <td style="padding: 0 18px;">
-        <span style="display: inline-block; position: relative; top: -9px; padding: 0 7px; background-color: ${palette.black}; color: ${palette.white}; font-family: 'Courier New', Courier, monospace; font-size: 11px; font-weight: 700; line-height: 18px; text-transform: uppercase; letter-spacing: 0.7px;">${escapeEmailHtml(label)}</span>
+        <span style="display: inline-block; position: relative; top: -9px; padding: 0 7px; ${fixedBackground(palette.black)} color: ${palette.white}; font-family: 'Courier New', Courier, monospace; font-size: 11px; font-weight: 700; line-height: 18px; text-transform: uppercase; letter-spacing: 0.7px;">${escapeEmailHtml(label)}</span>
       </td>
     </tr>
     <tr>
@@ -57,28 +60,30 @@ const emailLayout = ({ preheader, eyebrow, title, greeting, bodyHtml }) => `<!do
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light only">
+    <meta name="supported-color-schemes" content="light only">
     <title>${escapeEmailHtml(title)}</title>
   </head>
-  <body style="margin: 0; padding: 0; background-color: ${palette.black}; color: ${palette.white};">
+  <body bgcolor="${palette.black}" style="margin: 0; padding: 0; color-scheme: light only; ${fixedBackground(palette.black)} color: ${palette.white};">
     <div style="display: none; max-height: 0; overflow: hidden; opacity: 0; color: transparent;">${escapeEmailHtml(preheader)}</div>
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width: 100%; background-color: ${palette.black};">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="${palette.black}" style="width: 100%; ${fixedBackground(palette.black)}">
       <tr>
-        <td align="center" style="padding: 28px 14px;">
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width: 100%; max-width: 640px; border: 1px solid ${palette.border}; border-top: 5px solid ${palette.orange}; border-radius: 10px; background-color: ${palette.blue};">
+        <td align="center" bgcolor="${palette.black}" style="padding: 28px 14px; ${fixedBackground(palette.black)}">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="${palette.blue}" style="width: 100%; max-width: 640px; border: 1px solid ${palette.border}; border-top: 5px solid ${palette.orange}; border-radius: 10px; ${fixedBackground(palette.blue)}">
             <tr>
-              <td style="padding: 28px 30px 22px; border-bottom: 1px solid ${palette.border};">
+              <td bgcolor="${palette.blue}" style="padding: 28px 30px 22px; border-bottom: 1px solid ${palette.border}; ${fixedBackground(palette.blue)}">
                 <p style="margin: 0 0 9px; color: ${palette.orange}; font-family: 'Courier New', Courier, monospace; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.1px;">${escapeEmailHtml(eyebrow)}</p>
                 <h1 style="margin: 0; color: ${palette.white}; font-family: Arial, Helvetica, sans-serif; font-size: 28px; line-height: 1.2; letter-spacing: -0.5px;">${escapeEmailHtml(title)}</h1>
               </td>
             </tr>
             <tr>
-              <td style="padding: 26px 30px 30px; color: ${palette.white}; font-family: Arial, Helvetica, sans-serif; font-size: 16px; line-height: 1.65;">
+              <td bgcolor="${palette.blue}" style="padding: 26px 30px 30px; ${fixedBackground(palette.blue)} color: ${palette.white}; font-family: Arial, Helvetica, sans-serif; font-size: 16px; line-height: 1.65;">
                 <p style="margin: 0 0 16px; color: ${palette.white};">${escapeEmailHtml(greeting)}</p>
                 ${bodyHtml}
               </td>
             </tr>
             <tr>
-              <td style="padding: 18px 30px; border-top: 1px solid ${palette.border}; color: ${palette.muted}; font-family: 'Courier New', Courier, monospace; font-size: 11px; line-height: 1.6; text-transform: uppercase; letter-spacing: 0.5px;">
+              <td bgcolor="${palette.blue}" style="padding: 18px 30px; border-top: 1px solid ${palette.border}; ${fixedBackground(palette.blue)} color: ${palette.muted}; font-family: 'Courier New', Courier, monospace; font-size: 11px; line-height: 1.6; text-transform: uppercase; letter-spacing: 0.5px;">
                 Your Corporate Memory<br>
                 Keep what matters connected.
               </td>
@@ -150,4 +155,3 @@ export const buildReminderEmail = ({ name, memoryTitle, dueDate, accountUrl }) =
       ${actionButton('View memory', accountUrl)}`,
   }),
 });
-

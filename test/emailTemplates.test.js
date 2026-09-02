@@ -45,6 +45,9 @@ test('all transactional emails use the shared visual system and text fallback', 
     assert.match(message.html, /#ff6200/);
     assert.match(message.html, /#f7f9fc/);
     assert.match(message.html, /Your Corporate Memory/);
+    assert.match(message.html, /name="color-scheme" content="light only"/);
+    assert.match(message.html, /bgcolor="#101d2f"/);
+    assert.match(message.html, /linear-gradient\(#101d2f, #101d2f\)/);
     assert.ok(message.text.length > 40);
   }
 });
@@ -71,4 +74,3 @@ test('email action buttons reject unsafe URL protocols', () => {
     /must use HTTP or HTTPS/,
   );
 });
-
