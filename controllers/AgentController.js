@@ -93,6 +93,21 @@ export function getFilterValidationError(filters) {
   if (filters.dueOnly !== undefined && typeof filters.dueOnly !== 'boolean') {
     return 'filter dueOnly must be true or false';
   }
+  for (const field of ['dateFrom', 'dateTo']) {
+    if (
+      filters[field] !== undefined &&
+      (typeof filters[field] !== 'string' ||
+        Number.isNaN(Date.parse(filters[field])))
+    ) {
+      return `filter ${field} must be a valid date string`;
+    }
+  }
+  if (
+    filters.textQuery !== undefined &&
+    (typeof filters.textQuery !== 'string' || !filters.textQuery.trim())
+  ) {
+    return 'filter textQuery must be a non-empty string';
+  }
   return null;
 }
 
@@ -162,6 +177,14 @@ export const agentMemoriesChat = async (req, res, next) => {
         .join('\n'),
       metadata: m,
     }));
+
+    if (!docsForEmbed.length) {
+      return res.json({
+        answerText: 'You do not have any memories to search yet.',
+        citations: [],
+        followUps: [],
+      });
+    }
 
     const embeddings = new OpenAIEmbeddings(getAgentEmbeddingModelConfig());
     const docVectors = await embeddings.embedDocuments(

@@ -1,12 +1,14 @@
 import express from 'express';
 import Memories from '../models/MemoriesModel.js';
-import { v2 as cloudinary } from 'cloudinary';
 import { protect } from '../middleWare/authMiddleWare.js';
 import { isResourceOwner } from '../utils/authSecurity.js';
 import {
   imageUpload,
   removeTemporaryUpload,
 } from '../utils/imageUpload.js';
+import {
+  replaceCloudinaryImage,
+} from '../utils/cloudinaryImages.js';
 
 const router = express.Router();
 
@@ -31,20 +33,16 @@ router.post(
         return res.status(403).json({ error: 'You cannot update this memory' });
       }
 
-      cloudinary.config({
-        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-        api_key: process.env.CLOUDINARY_API_KEY,
-        api_secret: process.env.CLOUDINARY_SECRET,
+      const { cleanupWarning } = await replaceCloudinaryImage({
+        document: memory,
+        filePath: req.file.path,
+        imageUrlField: 'memoryImage',
       });
-      const result = await cloudinary.uploader.upload(`${req.file.path}`);
-
-      memory.memoryImage = result.secure_url;
-      memory.cloudinaryId = result.public_id;
-      await memory.save();
 
       return res.status(200).json({
         memoryImage: memory.memoryImage,
         cloudinaryId: memory.cloudinaryId,
+        cleanupWarning,
       });
     } catch (error) {
       return next(error);

@@ -7,7 +7,9 @@ import {
   getAgentChatModelConfig,
   getAgentEmbeddingModelConfig,
   getFilterValidationError,
+  agentMemoriesChat,
 } from '../controllers/AgentController.js';
+import Memories from '../models/MemoriesModel.js';
 
 const preserveEnvironment = (keys) =>
   Object.fromEntries(keys.map((key) => [key, process.env[key]]));
@@ -79,4 +81,35 @@ test('Agent Chat validates optional filters before model work', () => {
     getFilterValidationError({ dueOnly: 'yes' }),
     'filter dueOnly must be true or false',
   );
+  assert.equal(
+    getFilterValidationError({ dateFrom: 'not-a-date' }),
+    'filter dateFrom must be a valid date string',
+  );
+  assert.equal(
+    getFilterValidationError({ textQuery: '   ' }),
+    'filter textQuery must be a non-empty string',
+  );
+});
+
+test('Agent Chat returns a useful empty state without calling OpenAI', async () => {
+  const originalFind = Memories.find;
+  Memories.find = () => ({ sort: async () => [] });
+
+  try {
+    const response = await new Promise((resolve, reject) => {
+      agentMemoriesChat(
+        { body: { question: 'What should I remember?' }, user: { _id: 'user-id' } },
+        { json: resolve },
+        reject,
+      );
+    });
+
+    assert.deepEqual(response, {
+      answerText: 'You do not have any memories to search yet.',
+      citations: [],
+      followUps: [],
+    });
+  } finally {
+    Memories.find = originalFind;
+  }
 });

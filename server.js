@@ -1,7 +1,6 @@
 import { loadEnvironment } from './config/environment.js';
 import express from 'express';
 import compression from 'compression';
-import morgan from 'morgan';
 import mongoose from 'mongoose';
 import connectDB from './config/db.js';
 import {
@@ -10,6 +9,7 @@ import {
 } from './config/httpMiddleware.js';
 import ErrorResponse from './utils/errorResponse.js';
 import { scheduleReminderEmails } from './utils/cronJobs.js';
+import { createRequestLogger } from './utils/requestLogging.js';
 
 loadEnvironment();
 
@@ -25,7 +25,7 @@ app.use(createCorsMiddleware());
 app.use(createSecurityHeadersMiddleware());
 
 // Request Logging
-app.use(morgan('dev')); // 'combined' for production, 'dev' for development
+app.use(createRequestLogger());
 
 app.use(express.json());
 app.use(compression()); // Apply compression

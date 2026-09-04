@@ -12,21 +12,31 @@ export const protect = async (req, res, next) => {
     );
   }
 
+  let decoded;
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET, {
+    decoded = jwt.verify(token, process.env.JWT_SECRET, {
       algorithms: ['HS256'],
     });
-    const user = await User.findById(decoded.id).select('-password');
-
-    if (!user) {
-      return next(new ErrorResponse('No user found with this ID', 401));
-    }
-
-    req.user = user;
-    return next();
-  } catch (error) {
+  } catch {
     return next(new ErrorResponse('Token has failed', 401));
   }
+
+  const user = await User.findById(decoded.id).select('-password');
+
+  if (!user) {
+    return next(new ErrorResponse('No user found with this ID', 401));
+  }
+
+  if (user.isSuspended) {
+    return next(new ErrorResponse('This account has been suspended', 403));
+  }
+
+  if (!user.isConfirmed) {
+    return next(new ErrorResponse('Confirm your email before continuing', 403));
+  }
+
+  req.user = user;
+  return next();
 };
 
 export const admin = (req, res, next) => {
@@ -36,7 +46,7 @@ export const admin = (req, res, next) => {
     return next(
       new ErrorResponse(
         'You are not ADMIN and not authorized to access this route',
-        401,
+        403,
       ),
     );
   }

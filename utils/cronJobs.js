@@ -12,6 +12,59 @@ export const REMINDER_CRON_OPTIONS = Object.freeze({
   name: 'daily-reminder-emails',
 });
 
+export const isDueWithinReminderWindow = (dueDate, now = moment()) => {
+  const parsedDueDate = moment(dueDate, moment.ISO_8601, true);
+  if (!parsedDueDate.isValid()) return false;
+
+  return parsedDueDate.isSameOrBefore(moment(now).add(7, 'days'), 'day');
+};
+
+export const sendDueDateReminders = async ({
+  now = moment(),
+  memoriesModel = Memories,
+  userModel = User,
+  sendEmailFn = sendEmail,
+  logger = console,
+} = {}) => {
+  const candidates = await memoriesModel.find({
+    setDueDate: true,
+    isComplete: false,
+    hasSentSevenDayReminder: false,
+  });
+
+  for (const memory of candidates) {
+    if (!isDueWithinReminderWindow(memory.dueDate, now)) continue;
+
+    try {
+      const user = await userModel.findById(memory.user);
+      if (!user || !user.isConfirmed || user.isSuspended) continue;
+
+      const emailContent = buildReminderEmail({
+        name: user.name,
+        memoryTitle: memory.title,
+        dueDate: moment(memory.dueDate).format('MMMM Do YYYY'),
+        accountUrl: 'https://yourcorporatememory.com',
+      });
+
+      await sendEmailFn({
+        from: process.env.MAILER_FROM,
+        to: user.email,
+        subject: 'Your Corporate Memory Automatic Reminder',
+        html: emailContent.html,
+        text: emailContent.text,
+      });
+
+      await memoriesModel.findByIdAndUpdate(
+        memory._id,
+        { hasSentSevenDayReminder: true },
+        { returnDocument: 'after' },
+      );
+    } catch {
+      logger.error(`Reminder processing failed for memory ${memory._id}.`);
+    }
+  }
+};
+
 // This job runs every day at 8:00 AM.
 export const createReminderTask = () => {
   return cron.createTask(
@@ -19,41 +72,7 @@ export const createReminderTask = () => {
     async () => {
       console.log('Running daily reminder email job...');
       try {
-        const sevenDayWindow = moment().add(7, 'days').toDate();
-        const memories = await Memories.find({
-          dueDate: { $lte: sevenDayWindow },
-          setDueDate: true,
-          isComplete: false,
-          hasSentSevenDayReminder: false,
-        });
-
-        for (const memory of memories) {
-          const user = await User.findById(memory.user);
-          if (!user) continue;
-
-          const emailContent = buildReminderEmail({
-            name: user.name,
-            memoryTitle: memory.title,
-            dueDate: moment(memory.dueDate).format('MMMM Do YYYY'),
-            accountUrl: 'https://yourcorporatememory.com',
-          });
-
-          await sendEmail({
-            from: process.env.MAILER_FROM,
-            to: user.email,
-            subject: 'Your Corporate Memory Automatic Reminder',
-            html: emailContent.html,
-            text: emailContent.text,
-          });
-
-          await Memories.findByIdAndUpdate(
-            memory._id,
-            { hasSentSevenDayReminder: true },
-            { returnDocument: 'after' },
-          );
-
-          console.log(`Sent 7-day reminder for memory: ${memory._id}`);
-        }
+        await sendDueDateReminders();
       } catch (error) {
         console.error('Error in reminder cron job:', error);
       }

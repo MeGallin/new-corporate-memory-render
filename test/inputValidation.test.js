@@ -6,6 +6,7 @@ import {
   isValidEmail,
   isValidName,
   isValidNewPassword,
+  normalizeEmail,
 } from '../utils/inputValidation.js';
 
 test('account validation applies the documented rules', () => {
@@ -13,6 +14,7 @@ test('account validation applies the documented rules', () => {
   assert.equal(isValidName('Admin'), false);
   assert.equal(isValidEmail('admin@example.com'), true);
   assert.equal(isValidEmail('invalid'), false);
+  assert.equal(normalizeEmail(' Admin@Example.COM '), 'admin@example.com');
   assert.equal(isValidNewPassword('Secure1!'), true);
   assert.equal(isValidNewPassword('password'), false);
 });

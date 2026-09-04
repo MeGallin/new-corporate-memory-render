@@ -43,7 +43,12 @@ test('completion-only memory updates accept booleans without full edit fields', 
 
   process.env.JWT_SECRET = 'memory-completion-test-secret';
   User.findById = () => ({
-    select: async () => ({ _id: 'user-id', id: 'user-id' }),
+    select: async () => ({
+      _id: 'user-id',
+      id: 'user-id',
+      isConfirmed: true,
+      isSuspended: false,
+    }),
   });
   Memories.findOne = async () => ({ _id: 'memory-id', user: 'user-id' });
   Memories.findByIdAndUpdate = async (id, update) => {
@@ -90,7 +95,12 @@ test('completion-only memory updates reject non-boolean values', async () => {
 
   process.env.JWT_SECRET = 'memory-completion-test-secret';
   User.findById = () => ({
-    select: async () => ({ _id: 'user-id', id: 'user-id' }),
+    select: async () => ({
+      _id: 'user-id',
+      id: 'user-id',
+      isConfirmed: true,
+      isSuspended: false,
+    }),
   });
   Memories.findOne = async () => ({ _id: 'memory-id', user: 'user-id' });
   Memories.findByIdAndUpdate = async () => {
@@ -133,7 +143,12 @@ test('due-date-only memory updates accept booleans without full edit fields', as
 
   process.env.JWT_SECRET = 'memory-completion-test-secret';
   User.findById = () => ({
-    select: async () => ({ _id: 'user-id', id: 'user-id' }),
+    select: async () => ({
+      _id: 'user-id',
+      id: 'user-id',
+      isConfirmed: true,
+      isSuspended: false,
+    }),
   });
   Memories.findOne = async () => ({ _id: 'memory-id', user: 'user-id' });
   Memories.findByIdAndUpdate = async (id, update) => {

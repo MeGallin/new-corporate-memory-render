@@ -4,7 +4,6 @@ import ErrorResponse from '../utils/errorResponse.js';
 import sendEmail from '../utils/sendEmail.js';
 import jwt from 'jsonwebtoken';
 import requestIp from 'request-ip';
-import { v2 as cloudinary } from 'cloudinary';
 import catchAsync from '../utils/catchAsync.js';
 import { OAuth2Client } from 'google-auth-library';
 import {
@@ -16,11 +15,14 @@ import {
   isValidEmail,
   isValidName,
   isValidNewPassword,
+  normalizeEmail,
 } from '../utils/inputValidation.js';
 import {
   buildPasswordResetEmail,
   buildRegistrationEmail,
 } from '../utils/emailTemplates.js';
+import { deleteCloudinaryImage } from '../utils/cloudinaryImages.js';
+import { toPublicUser } from '../utils/userResponse.js';
 
 const googleClient = new OAuth2Client();
 
@@ -43,10 +45,9 @@ export const register = catchAsync(async (req, res, next) => {
 
   const user = await User.create({
     name: name.trim(),
-    email: email.trim(),
+    email: normalizeEmail(email),
     password,
     profileImage: '/assets/images/sample.jpg',
-    cloudinaryId: '12345',
     ipAddress: ipAddress,
     loginCounter: 0,
     registeredWithGoogle: false,
@@ -55,7 +56,7 @@ export const register = catchAsync(async (req, res, next) => {
   try {
     const link = `${
       process.env.MAILER_LOCAL_URL
-    }api/confirm-email/${generateToken(user._id)}`;
+    }api/confirm-email/${generateConfirmationToken(user._id)}`;
     const message = buildRegistrationEmail({
       name: user.name,
       confirmationUrl: link,
@@ -72,19 +73,22 @@ export const register = catchAsync(async (req, res, next) => {
 
     res
       .status(201)
-      .json({ success: true, data: `Email sent successfully ${link}` });
+      .json({
+        success: true,
+        data: 'Registration successful. Check your email to confirm your account.',
+      });
   } catch (error) {
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
+    await user.deleteOne();
 
-    return next(new ErrorResponse('Email could not be set', 500));
+    return next(new ErrorResponse('Registration email could not be sent', 500));
   }
 });
 
 // Generate a secret token for the user
-const generateToken = (id, email) => {
-  return jwt.sign({ id, email }, process.env.JWT_SECRET, {
+export const generateConfirmationToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
     algorithm: 'HS256',
+    expiresIn: '24h',
   });
 };
 
@@ -109,7 +113,9 @@ export const login = catchAsync(async (req, res, next) => {
   }
 
   // Check if user exists and PW is correct
-  const user = await User.findOne({ email: email.trim() }).select('+password');
+  const user = await User.findOne({ email: normalizeEmail(email) }).select(
+    '+password',
+  );
 
   if (!user) {
     return next(new ErrorResponse('Please provide valid credentials', 401));
@@ -119,6 +125,12 @@ export const login = catchAsync(async (req, res, next) => {
 
   if (!isMatched) {
     return next(new ErrorResponse('Please provide valid credentials', 401));
+  }
+  if (!user.isConfirmed) {
+    return next(new ErrorResponse('Confirm your email before signing in', 403));
+  }
+  if (user.isSuspended) {
+    return next(new ErrorResponse('This account has been suspended', 403));
   }
   user.loginCounter = user.loginCounter + 1;
   user.ipAddress = ipAddress;
@@ -161,7 +173,6 @@ export const googleLogin = catchAsync(async (req, res, next) => {
       isConfirmed: true,
       registeredWithGoogle: true,
       profileImage: '/assets/images/sample.jpg',
-      cloudinaryId: '12345',
       ipAddress: ipAddress,
       loginCounter: 0,
     });
@@ -169,6 +180,10 @@ export const googleLogin = catchAsync(async (req, res, next) => {
     sendToken(user, 200, res);
   } else {
     //Login
+    if (existingUser.isSuspended) {
+      return next(new ErrorResponse('This account has been suspended', 403));
+    }
+    existingUser.isConfirmed = true;
     existingUser.loginCounter = existingUser.loginCounter + 1;
     existingUser.ipAddress = ipAddress;
     await existingUser.save();
@@ -193,7 +208,7 @@ export const updateUserDetails = catchAsync(async (req, res, next) => {
     if (!isValidEmail(req.body.email)) {
       return next(new ErrorResponse('Enter a valid email address.', 400));
     }
-    user.email = req.body.email.trim();
+    user.email = normalizeEmail(req.body.email);
   }
   if (req.body.password !== undefined) {
     if (!isValidNewPassword(req.body.password)) {
@@ -204,7 +219,7 @@ export const updateUserDetails = catchAsync(async (req, res, next) => {
   const updatedUser = await user.save();
   res.json({
     success: true,
-    updatedUser,
+    updatedUser: toPublicUser(updatedUser),
   });
 });
 
@@ -218,9 +233,14 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
     return next(new ErrorResponse('Enter a valid email address.', 400));
   }
 
-  const user = await User.findOne({ email: email.trim() });
+  const user = await User.findOne({ email: normalizeEmail(email) });
 
-  if (!user) return next(new ErrorResponse('Email could not be set', 404));
+  if (!user) {
+    return res.status(200).json({
+      success: true,
+      data: 'If that account exists, a password reset email has been sent.',
+    });
+  }
 
   try {
     const resetToken = user.getResetPasswordToken();
@@ -240,7 +260,10 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
       text: message.text,
     });
 
-    res.status(200).json({ success: true, data: `Email sent successfully` });
+    res.status(200).json({
+      success: true,
+      data: 'If that account exists, a password reset email has been sent.',
+    });
   } catch (error) {
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
@@ -283,29 +306,25 @@ export const resetPassword = catchAsync(async (req, res, next) => {
 // @route: GET /api/users/user
 // @access: PRIVATE
 export const getUserDetails = catchAsync(async (req, res, next) => {
-  const userDetails = await User.findById(req.user.id);
-
-  if (!userDetails)
-    return next(new ErrorResponse('Invalid, no user details found'), 404);
-  res.status(200).json({ success: true, userDetails });
+  res.status(200).json({
+    success: true,
+    userDetails: toPublicUser(req.user),
+  });
 });
 
 // @description: Delete a User Profile Image
-// @route: DELETE /api/user-profile-image-delete/:id
+// @route: DELETE /api/user-profile-image
 // @access: Private
 export const deleteUserProfileImage = catchAsync(async (req, res, next) => {
   const user = await User.findById(req.user.id);
 
   if (!user) return next(new ErrorResponse('No User found!', 401));
-  // Since the UserProfileImage model is removed, we no longer need to find and remove the separate image record.
-
-  //Delete image from Cloudinary
-  cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_SECRET,
-  });
-  await cloudinary.uploader.destroy(user.cloudinaryId);
+  if (user.cloudinaryId) {
+    await deleteCloudinaryImage({
+      publicId: user.cloudinaryId,
+      imageUrl: user.profileImage,
+    });
+  }
 
   //Update the memory object
   user.cloudinaryId = null;

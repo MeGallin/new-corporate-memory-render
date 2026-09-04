@@ -8,6 +8,8 @@ import AdminRoutes from '../routes/AdminRoute.js';
 import ConfirmationLinkRoute from '../routes/ConfirmationLinkRoute.js';
 import MemoryUploadImageRoutes from '../routes/MemoryUploadImageRoutes.js';
 import UserRoutes from '../routes/UserRoutes.js';
+import { generateConfirmationToken } from '../controllers/UserController.js';
+import { toPublicUser } from '../utils/userResponse.js';
 
 const createTestServer = async (router) => {
   const app = express();
@@ -57,6 +59,69 @@ test('user session tokens use HS256 and include the configured expiry', () => {
   } finally {
     restoreEnvironmentVariable('JWT_SECRET', originalJwtSecret);
     restoreEnvironmentVariable('JWT_EXPIRE', originalJwtExpire);
+  }
+});
+
+test('confirmation tokens expire and public user responses omit secrets', () => {
+  const originalJwtSecret = process.env.JWT_SECRET;
+  process.env.JWT_SECRET = 'route-test-secret';
+
+  try {
+    const token = generateConfirmationToken('user-id');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, {
+      algorithms: ['HS256'],
+    });
+    const publicUser = toPublicUser({
+      _id: 'user-id',
+      name: 'Admin Guy',
+      email: 'admin@example.com',
+      password: 'password-hash',
+      resetPasswordToken: 'reset-token',
+      resetPasswordExpire: new Date(),
+    });
+
+    assert.equal(decoded.id, 'user-id');
+    assert.ok(decoded.exp > decoded.iat);
+    assert.equal(publicUser.name, 'Admin Guy');
+    assert.equal('password' in publicUser, false);
+    assert.equal('resetPasswordToken' in publicUser, false);
+    assert.equal('resetPasswordExpire' in publicUser, false);
+  } finally {
+    restoreEnvironmentVariable('JWT_SECRET', originalJwtSecret);
+  }
+});
+
+test('protected routes reject unconfirmed and suspended accounts', async () => {
+  const originalJwtSecret = process.env.JWT_SECRET;
+  const originalFindById = User.findById;
+  process.env.JWT_SECRET = 'route-test-secret';
+  const server = await createTestServer(AdminRoutes);
+
+  try {
+    for (const account of [
+      { isConfirmed: false, isSuspended: false },
+      { isConfirmed: true, isSuspended: true },
+    ]) {
+      User.findById = () => ({
+        select: async () => ({
+          _id: 'restricted-user',
+          id: 'restricted-user',
+          isAdmin: true,
+          ...account,
+        }),
+      });
+
+      const response = await fetch(`${server.baseUrl}/admin/users`, {
+        headers: {
+          Authorization: `Bearer ${createToken('restricted-user')}`,
+        },
+      });
+      assert.equal(response.status, 403);
+    }
+  } finally {
+    await server.close();
+    restoreEnvironmentVariable('JWT_SECRET', originalJwtSecret);
+    User.findById = originalFindById;
   }
 });
 
@@ -114,6 +179,30 @@ test('protected routes reject invalid, expired, and non-HS256 tokens', async () 
   }
 });
 
+test('protected routes do not misreport database failures as invalid tokens', async () => {
+  const originalJwtSecret = process.env.JWT_SECRET;
+  const originalFindById = User.findById;
+  process.env.JWT_SECRET = 'route-test-secret';
+  User.findById = () => ({
+    select: async () => {
+      throw new Error('database unavailable');
+    },
+  });
+
+  const server = await createTestServer(AdminRoutes);
+  try {
+    const response = await fetch(`${server.baseUrl}/admin/users`, {
+      headers: { Authorization: `Bearer ${createToken('admin-user')}` },
+    });
+    assert.equal(response.status, 500);
+    assert.match((await response.json()).error, /database unavailable/);
+  } finally {
+    await server.close();
+    restoreEnvironmentVariable('JWT_SECRET', originalJwtSecret);
+    User.findById = originalFindById;
+  }
+});
+
 test('email confirmation rejects tokens that are not HS256', async () => {
   const originalJwtSecret = process.env.JWT_SECRET;
   const originalFindById = User.findById;
@@ -150,7 +239,13 @@ test('admin users route returns only fields needed by the admin screen', async (
 
   process.env.JWT_SECRET = 'route-test-secret';
   User.findById = () => ({
-    select: async () => ({ _id: 'admin-user', id: 'admin-user', isAdmin: true }),
+    select: async () => ({
+      _id: 'admin-user',
+      id: 'admin-user',
+      isAdmin: true,
+      isConfirmed: true,
+      isSuspended: false,
+    }),
   });
   User.find = () => ({
     select: (fields) => {
@@ -205,7 +300,12 @@ test('memory image route rejects an authenticated non-owner before Cloudinary', 
 
   process.env.JWT_SECRET = 'route-test-secret';
   User.findById = () => ({
-    select: async () => ({ _id: 'requesting-user', id: 'requesting-user' }),
+    select: async () => ({
+      _id: 'requesting-user',
+      id: 'requesting-user',
+      isConfirmed: true,
+      isSuspended: false,
+    }),
   });
   Memories.findById = async () => ({ _id: 'memory-id', user: 'other-user' });
 
@@ -269,7 +369,7 @@ test('public authentication and recovery routes are rate limited', async () => {
       });
       if (attempt === 0) firstRecoveryStatus = recoveryResponse.status;
     }
-    assert.equal(firstRecoveryStatus, 404);
+    assert.equal(firstRecoveryStatus, 200);
     assert.equal(recoveryResponse.status, 429);
     assert.match(
       (await recoveryResponse.json()).error,

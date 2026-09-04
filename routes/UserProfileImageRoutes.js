@@ -1,11 +1,13 @@
 import express from 'express';
 import User from '../models/UserModel.js';
-import { v2 as cloudinary } from 'cloudinary';
 import { protect } from '../middleWare/authMiddleWare.js';
 import {
   imageUpload,
   removeTemporaryUpload,
 } from '../utils/imageUpload.js';
+import {
+  replaceCloudinaryImage,
+} from '../utils/cloudinaryImages.js';
 
 const router = express.Router();
 
@@ -26,20 +28,16 @@ router.post(
         return res.status(404).json({ error: 'No USER found' });
       }
 
-      cloudinary.config({
-        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-        api_key: process.env.CLOUDINARY_API_KEY,
-        api_secret: process.env.CLOUDINARY_SECRET,
+      const { cleanupWarning } = await replaceCloudinaryImage({
+        document: user,
+        filePath: req.file.path,
+        imageUrlField: 'profileImage',
       });
-      const result = await cloudinary.uploader.upload(`${req.file.path}`);
-
-      user.profileImage = result.secure_url;
-      user.cloudinaryId = result.public_id;
-      await user.save();
 
       return res.status(200).json({
         profileImage: user.profileImage,
         cloudinaryId: user.cloudinaryId,
+        cleanupWarning,
       });
     } catch (error) {
       return next(error);

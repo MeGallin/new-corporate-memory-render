@@ -9,7 +9,7 @@
     "server": "nodemon server.js",
     "debug": "ndb server",
     "smoke": "node scripts/smoke-test.mjs",
-    "test": "node --test test/agentDependencies.test.js test/authSecurity.test.js test/emailTemplates.test.js test/emailTransport.test.js test/environmentDependencies.test.js test/expressCompatibility.test.js test/httpMiddleware.test.js test/inputValidation.test.js test/memoryCompletion.test.js test/mongooseDependencies.test.js test/passwordDependencies.test.js test/routeSecurity.test.js test/runtimeDependencies.test.js test/uploadDependencies.test.js"
+    "test": "node --test test/agentDependencies.test.js test/authSecurity.test.js test/cloudinaryImageCleanup.test.js test/emailTemplates.test.js test/emailTransport.test.js test/environmentDependencies.test.js test/expressCompatibility.test.js test/httpMiddleware.test.js test/inputValidation.test.js test/memoryCompletion.test.js test/mongooseDependencies.test.js test/passwordDependencies.test.js test/routeSecurity.test.js test/runtimeDependencies.test.js test/uploadDependencies.test.js"
   },
   "repository": {
     "type": "git",

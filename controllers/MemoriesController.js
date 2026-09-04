@@ -1,12 +1,8 @@
 import Memories from '../models/MemoriesModel.js';
-import User from '../models/UserModel.js';
 import ErrorResponse from '../utils/errorResponse.js';
-import moment from 'moment';
-import cron from 'node-cron';
-import sendEmail from '../utils/sendEmail.js';
-import { v2 as cloudinary } from 'cloudinary';
 import catchAsync from '../utils/catchAsync.js';
 import { getMemoryValidationError } from '../utils/inputValidation.js';
+import { deleteCloudinaryImage } from '../utils/cloudinaryImages.js';
 
 // @description: USER get all memories
 // @route: GET /api/memories
@@ -26,7 +22,7 @@ export const memories = catchAsync(async (req, res, next) => {
 });
 
 // @description: USER Create a memory
-// @route: GET /api/create-memory
+// @route: POST /api/memories
 // @access: Private
 export const createMemory = catchAsync(async (req, res, next) => {
   const { title, memory, dueDate, tag, priority, isComplete } = req.body;
@@ -56,7 +52,7 @@ export const createMemory = catchAsync(async (req, res, next) => {
 });
 
 // @description: EDIT and UPDATE a memory
-// @route: GET /api/edit-memory/:id
+// @route: PUT /api/memories/:id
 // @access: PRIVATE
 export const editMemory = catchAsync(async (req, res, next) => {
   const memoryToUpdate = await Memories.findOne({
@@ -127,7 +123,7 @@ export const editMemory = catchAsync(async (req, res, next) => {
 });
 
 // @description: Delete a memory
-// @route: GET /api/delete-memory/:id
+// @route: DELETE /api/memories/:id
 // @access: PRIVATE
 export const deleteMemory = catchAsync(async (req, res, next) => {
   const memory = await Memories.findOne({
@@ -141,12 +137,16 @@ export const deleteMemory = catchAsync(async (req, res, next) => {
     );
   }
 
-  await memory.deleteOne(); // Replaced deprecated remove()
+  await deleteCloudinaryImage({
+    publicId: memory.cloudinaryId,
+    imageUrl: memory.memoryImage,
+  });
+  await memory.deleteOne();
   res.status(200).json({ success: true });
 });
 
 // @description: USER Delete a tag
-// @route: DELETE /api/delete-memory-tag/:id
+// @route: DELETE /api/memories/:id/tag
 // @access: Private
 export const deleteMemoryTag = catchAsync(async (req, res, next) => {
   const memory = await Memories.findOne({
@@ -166,7 +166,7 @@ export const deleteMemoryTag = catchAsync(async (req, res, next) => {
 });
 
 // @description: Delete a Memory Image
-// @route: DELETE /api/memory-image-delete/:id
+// @route: DELETE /api/memories/:id/image
 // @access: Private
 export const deleteMemoryImage = catchAsync(async (req, res, next) => {
   const memory = await Memories.findOne({
@@ -180,13 +180,10 @@ export const deleteMemoryImage = catchAsync(async (req, res, next) => {
     );
   }
 
-  //Delete image from Cloudinary
-  cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_SECRET,
+  await deleteCloudinaryImage({
+    publicId: memory.cloudinaryId,
+    imageUrl: memory.memoryImage,
   });
-  await cloudinary.uploader.destroy(memory.cloudinaryId);
 
   //Update the memory object
   memory.cloudinaryId = null;

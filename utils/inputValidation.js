@@ -13,6 +13,9 @@ export const isValidName = (value) =>
 export const isValidEmail = (value) =>
   typeof value === 'string' && emailPattern.test(value.trim());
 
+export const normalizeEmail = (value) =>
+  typeof value === 'string' ? value.trim().toLowerCase() : '';
+
 export const isValidNewPassword = (value) =>
   typeof value === 'string' && newPasswordPattern.test(value);
 

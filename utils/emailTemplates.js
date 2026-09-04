@@ -111,14 +111,14 @@ export const buildRegistrationEmail = ({ name, confirmationUrl }) => ({
 });
 
 export const buildPasswordResetEmail = ({ name, resetUrl }) => ({
-  text: `Hi ${name},\n\nWe received a request to reset your Your Corporate Memory password.\n\nReset your password: ${resetUrl}\n\nIf you did not request this change, you can ignore this email.`,
+  text: `Hi ${name},\n\nWe received a request to reset your Your Corporate Memory account password.\n\nReset your password: ${resetUrl}\n\nIf you did not request this change, you can ignore this email.`,
   html: emailLayout({
     preheader: 'Use the secure link to reset your password.',
     eyebrow: 'Account recovery',
     title: 'Reset your password',
     greeting: `Hi ${name},`,
     bodyHtml: `
-      <p style="margin: 0; color: ${palette.muted};">We received a request to reset your Your Corporate Memory password.</p>
+      <p style="margin: 0; color: ${palette.muted};">We received a request to reset your Your Corporate Memory account password.</p>
       ${informationPanel('Security notice', 'Only use this link if you requested the password change. The reset link is time limited.')}
       ${actionButton('Reset password', resetUrl)}
       <p style="margin: 16px 0 0; color: ${palette.muted}; font-size: 13px;">If you did not request this change, you can ignore this email.</p>`,
